@@ -1,0 +1,33 @@
+# Config file for to create datacards with simpleharvestdatacards
+
+# Channel 
+analysis: "HSCParticleAnalyzer"
+channel: "BaseName"
+
+# Processes taken into account in analysis
+#processes: ["PostS_SR3_Mass","mass_predBC_999ias100","mass_obs_999ias100"]
+processes: ["PostS_SR3_Mass","mass_predBC_999ias100"]
+
+# Systematic uncertainties: can have effect shape or lnN (normalisation)
+systematics:
+    shape_trigger:
+        effect: "shape"
+        processes: ["PostS_SR3_Mass"]
+        name: "Trigger"
+        title: "Trigger syst"
+        variations: ["up", "down"]
+#        nomWeight: "ltfweight_2"
+#        altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
+#    shape_dy:
+#        effect: "shape"
+#        processes: ["signal", "background"]
+#        name: "shape_dy"
+#        title: "+/- 10% Zptweight"
+#        variations: ["Up", "Down"]
+#        nomWeight: "zptweight"
+#        altWeights: ["(zptweight+0.1*(zptweight-1))", "(zptweight-0.1*(zptweight-1))"]
+#    lumi:
+#        effect: "lnN"
+#        processes: ["Gluino_M-1000", "background"]
+#        scaleFactor: 1.025
+    
