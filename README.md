@@ -107,3 +107,15 @@ python limit_plots.py
 Set the ```labelSignal``` variable to extract limits on a given signal hypothesis. The supported hypothesis are the commented ones. 
 
 The results are saved on the ```limit_plots_dir``` directory. 
+
+## Significance computation
+
+Work in progress... 
+
+## Signal injection tests
+
+Work in progress... 
+
+## Mass shape analysis
+
+Work in progress... 

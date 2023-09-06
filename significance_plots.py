@@ -96,8 +96,6 @@ dataCards_999muMinus2sigma = OrderedDict()
 limits_999muMinus2sigma = OrderedDict()
 
 
-dataCardDir = '/opt/sbg/cms/safe1/cms/dapparu/HSCP/Combine/CMSSW_11_3_4/src/HiggsAnalysis/HSCPLimit/combine/datacards/mass/v_'+labelSR+'/'
-limitDir = dataCardDir.replace('datacards', 'limitTrees')
 
 dataCardDirSR1 = 'datacards_test_SR1_5may_v3/'
 limitDirSR1 = 'limitTrees_test_SR1_5may_v3/'
@@ -127,7 +125,6 @@ for s in signal:
     elif 'stop' in s:
         name = s.replace('HSCPs', 'S')
     name = name.replace('_M-', '')
-    #dataCards_90[s] = dataCardDir + '{}_nominal.txt'.format(name)
     dataCards_90[s] = dataCardDirSR1 + '{}_2018.txt'.format(name)
     dataCards_99[s] = dataCardDirSR2 + '{}_2018.txt'.format(name)
     dataCards_999[s] = dataCardDirSR3 + '{}_2018.txt'.format(name)
