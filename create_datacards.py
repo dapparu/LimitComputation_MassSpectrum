@@ -30,10 +30,7 @@ def statErr(h1,name):
     statErr.SetName(name)
     for i in range (1,statErr.GetNbinsX()):
         if h1.GetBinContent(i)>0:
-            #print (i,statErr.GetBinError(i),statErr.GetBinContent(i),statErr.GetBinError(i)/statErr.GetBinContent(i))
             statErr.SetBinContent(i,h1.GetBinError(i)+h1.GetBinContent(i))
-            #print i,h1.GetBinLowEdge(i), h1.GetBinError(i),h1.GetBinContent(i), h1.GetBinError(i)/h1.GetBinContent(i)
-            #statErr.SetBinContent(i,statErr.GetBinError(i))
         else:
             statErr.SetBinContent(i,1)
     return statErr
@@ -134,7 +131,7 @@ def fillH2(h2,targetMass,mean,stddev,s):
     xmin=mean-stddev
     if (xmin<300): 
         xmin=300
-    xmax=100000
+    xmax=mean+2*stddev
     for i in range(0,h2.GetNbinsX()+1):
         if (i!=h2.GetXaxis().FindBin(targetMass)): 
                 continue
@@ -177,15 +174,17 @@ if __name__ == '__main__':
     if(regionSignal=='SR3'):
         regionBckg='999ias100'
 
-    text_file_tex = open('yieldDir/yield'+regionSignal+'_2017.tex', "w")
-    text_file_tex.write('\n \\documentclass{article}')
-    text_file_tex.write('\n \\begin{document}')
-    text_file_tex.write('\n \\begin{center}')
-    text_file_tex.write('\n \\begin{tabular}{ |l|c|c| } ')
-    text_file_tex.write('\n \hline')
-    text_file_tex.write('\n Yield '+regionSignal+' & Pred. & Signal \\\\')
-    text_file_tex.write('\n \hline')
-    text_file_tex.write('\n \hline')
+    os.system('mkdir -p yieldDir')
+
+    text_file_tex_2017 = open('yieldDir/yield'+regionSignal+'_2017.tex', "w")
+    text_file_tex_2017.write('\n \\documentclass{article}')
+    text_file_tex_2017.write('\n \\begin{document}')
+    text_file_tex_2017.write('\n \\begin{center}')
+    text_file_tex_2017.write('\n \\begin{tabular}{ |l|c|c| } ')
+    text_file_tex_2017.write('\n \hline')
+    text_file_tex_2017.write('\n Yield '+regionSignal+' & Pred. & Signal \\\\')
+    text_file_tex_2017.write('\n \hline')
+    text_file_tex_2017.write('\n \hline')
 
     text_file_tex_2018 = open('yieldDir/yield'+regionSignal+'_2018.tex', "w")
     text_file_tex_2018.write('\n \\documentclass{article}')
@@ -198,12 +197,10 @@ if __name__ == '__main__':
     text_file_tex_2018.write('\n \hline')
 
     # load root file
-    path = "/opt/sbg/cms/safe1/cms/dapparu/HSCP/CMSSW_10_6_27/src/SUSYBSMAnalysis/BackgroundPrediction/"
     pathSignal = "/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/"
     pathPred = "/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/"
 
     yearSignal='2018'
-    codeVersionSignal='73p3_Signal'
     codeVersionSignal='77p1_Signal'
 
     ofileBase = rt.TFile("base.root","RECREATE")
@@ -279,78 +276,44 @@ if __name__ == '__main__':
     massPlotsSignal['C_down'] = idirSignal+'PostS_'+searchRegion+'_Mass_C_down1'
 
     year='2017'
-    codeVersion='73p3_v4'
     nPE='200'
-    endLabel='_19april'
-    if(searchRegion=='SR3'):
-        endLabel='_21aug'
 
     codeVersion='UnB_v1_v1'
-    endLabel='_UnB_v3_Data_v1'
+    endLabel='_UnB_v3_Data_v2'
 
-    #fpathPred['pred_2017_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_etadown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2017_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2017_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2017_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2017_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
-
-    fpathPred['obs_2017'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #print(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['obs_2017'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
     fpathPred['pred_2017_etadown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2017_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2017_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
 
     year='2018'
 
-    #fpathPred['pred_2018_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_etadown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2018_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2018_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2018_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2018_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-    ### TODO fpathPred['pred_2018_fitmomup2'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-    
-    fpathPred['obs_2018'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['obs_2018'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
     fpathPred['pred_2018_etadown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
-    fpathPred['pred_2018_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-    #fpathPred['pred_2018_fitmomup2'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta5_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
-
+    fpathPred['pred_2018_ihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_ihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_momup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_momdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_corrih'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_corrmom'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitihup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitihdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomdown'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomup2'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+    
     #2017 bias corr parameters
     if(searchRegion=='SR1'):
         p1=0.00108083
@@ -365,7 +328,6 @@ if __name__ == '__main__':
         p1=0.00131767
         p0=0.939438
         
-
     mass_plot['obs_2017'] = fpathPred['obs_2017'].Get("mass_obs_"+regionBckg)
     mass_plot['pred_2017_nominal'] = fpathPred['pred_2017_nominal'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2017_stat'] = statErr(mass_plot['pred_2017_nominal'],"statErr")
@@ -377,10 +339,10 @@ if __name__ == '__main__':
     mass_plot['pred_2017_momdown'] = fpathPred['pred_2017_momdown'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2017_corrih'] = fpathPred['pred_2017_corrih'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2017_corrmom'] = fpathPred['pred_2017_corrmom'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2017_fitihup'] = fpathPred['pred_2017_fitihup'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2017_fitihdown'] = fpathPred['pred_2017_fitihdown'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2017_fitmomup'] = fpathPred['pred_2017_fitmomup'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2017_fitmomdown'] = fpathPred['pred_2017_fitmomdown'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2017_fitihup'] = fpathPred['pred_2017_fitihup'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2017_fitihdown'] = fpathPred['pred_2017_fitihdown'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2017_fitmomup'] = fpathPred['pred_2017_fitmomup'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2017_fitmomdown'] = fpathPred['pred_2017_fitmomdown'].Get("mass_predBC_"+regionBckg)
     
     mass_plot['pred_2017_nominal'] = BiasCorrection(mass_plot['pred_2017_nominal'],p1,p0)
     mass_plot['pred_2017_stat'] = BiasCorrection(mass_plot['pred_2017_stat'],p1,p0)
@@ -392,10 +354,10 @@ if __name__ == '__main__':
     mass_plot['pred_2017_momdown'] = BiasCorrection(mass_plot['pred_2017_momdown'],p1,p0)
     mass_plot['pred_2017_corrih'] = BiasCorrection(mass_plot['pred_2017_corrih'],p1,p0)
     mass_plot['pred_2017_corrmom'] = BiasCorrection(mass_plot['pred_2017_corrmom'],p1,p0)
-    #mass_plot['pred_2017_fitihup'] = BiasCorrection(mass_plot['pred_2017_fitihup'],p1,p0)
-    #mass_plot['pred_2017_fitihdown'] = BiasCorrection(mass_plot['pred_2017_fitihdown'],p1,p0)
-    #mass_plot['pred_2017_fitmomup'] = BiasCorrection(mass_plot['pred_2017_fitmomup'],p1,p0)
-    #mass_plot['pred_2017_fitmomdown'] = BiasCorrection(mass_plot['pred_2017_fitmomdown'],p1,p0)
+    mass_plot['pred_2017_fitihup'] = BiasCorrection(mass_plot['pred_2017_fitihup'],p1,p0)
+    mass_plot['pred_2017_fitihdown'] = BiasCorrection(mass_plot['pred_2017_fitihdown'],p1,p0)
+    mass_plot['pred_2017_fitmomup'] = BiasCorrection(mass_plot['pred_2017_fitmomup'],p1,p0)
+    mass_plot['pred_2017_fitmomdown'] = BiasCorrection(mass_plot['pred_2017_fitmomdown'],p1,p0)
     mass_plot['pred_2017_corrbias'] = BiasCorrection(mass_plot['pred_2017_nominal'],p1,p0)
 
     #2018 bias corr parameters
@@ -422,11 +384,11 @@ if __name__ == '__main__':
     mass_plot['pred_2018_momdown'] = fpathPred['pred_2018_momdown'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2018_corrih'] = fpathPred['pred_2018_corrih'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2018_corrmom'] = fpathPred['pred_2018_corrmom'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2018_fitihup'] = fpathPred['pred_2018_fitihup'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2018_fitihdown'] = fpathPred['pred_2018_fitihdown'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2018_fitmomup'] = fpathPred['pred_2018_fitmomup'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2018_fitmomdown'] = fpathPred['pred_2018_fitmomdown'].Get("mass_predBC_"+regionBckg)
-    #mass_plot['pred_2018_fitmomdown'] = fpathPred['pred_2018_fitmomdown'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2018_fitihup'] = fpathPred['pred_2018_fitihup'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2018_fitihdown'] = fpathPred['pred_2018_fitihdown'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2018_fitmomup'] = fpathPred['pred_2018_fitmomup'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2018_fitmomdown'] = fpathPred['pred_2018_fitmomdown'].Get("mass_predBC_"+regionBckg)
+    mass_plot['pred_2018_fitmomdown'] = fpathPred['pred_2018_fitmomdown'].Get("mass_predBC_"+regionBckg)
     mass_plot['pred_2018_stat'] = statErr(mass_plot['pred_2018_nominal'],"statErr")
 
 
@@ -440,16 +402,15 @@ if __name__ == '__main__':
     mass_plot['pred_2018_momdown'] = BiasCorrection(mass_plot['pred_2018_momdown'],p1,p0)
     mass_plot['pred_2018_corrih'] = BiasCorrection(mass_plot['pred_2018_corrih'],p1,p0)
     mass_plot['pred_2018_corrmom'] = BiasCorrection(mass_plot['pred_2018_corrmom'],p1,p0)
-    #mass_plot['pred_2018_fitihup'] = BiasCorrection(mass_plot['pred_2018_fitihup'],p1,p0)
-    #mass_plot['pred_2018_fitihdown'] = BiasCorrection(mass_plot['pred_2018_fitihdown'],p1,p0)
-    #mass_plot['pred_2018_fitmomup'] = BiasCorrection(mass_plot['pred_2018_fitmomup'],p1,p0)
-    #mass_plot['pred_2018_fitmomdown'] = BiasCorrection(mass_plot['pred_2018_fitmomdown'],p1,p0)
+    mass_plot['pred_2018_fitihup'] = BiasCorrection(mass_plot['pred_2018_fitihup'],p1,p0)
+    mass_plot['pred_2018_fitihdown'] = BiasCorrection(mass_plot['pred_2018_fitihdown'],p1,p0)
+    mass_plot['pred_2018_fitmomup'] = BiasCorrection(mass_plot['pred_2018_fitmomup'],p1,p0)
+    mass_plot['pred_2018_fitmomdown'] = BiasCorrection(mass_plot['pred_2018_fitmomdown'],p1,p0)
     mass_plot['pred_2018_corrbias'] = BiasCorrection(mass_plot['pred_2018_nominal'],p1,p0)
 
     ofileBase.cd()
     
     name = {
-       'Gluino500_2018': '$\\tilde{g}$ (M=500 GeV)',
        'Gluino800_2018': '$\\tilde{g}$ (M=800 GeV)',
        'Gluino1000_2018': '$\\tilde{g}$ (M=1000 GeV)',
        'Gluino1400_2018': '$\\tilde{g}$ (M=1400 GeV)',
@@ -501,7 +462,6 @@ if __name__ == '__main__':
     }
 
     target={
-       'Gluino500_2018': 500,
        'Gluino800_2018': 800,
        'Gluino1000_2018': 1000,
        'Gluino1400_2018': 1400,
@@ -554,16 +514,9 @@ if __name__ == '__main__':
         'DYcharge2e_1800_2018': 1800,
         'DYcharge2e_2200_2018': 2200,
         'DYcharge2e_2600_2018': 2600,
-
     }
-
-    fpathPred['pred'] = '/opt/sbg/cms/safe1/cms/dapparu/HSCP/CMSSW_10_6_27/src/SUSYBSMAnalysis/BackgroundPrediction/predWithUpAndDown'+regionBckg+'_2017_2018.root'
-    fPred = rt.TFile.Open(fpathPred['pred'], 'READ')
-    mass_plot['predNominal'] = fPred.Get('pred_new')
-    mass_plot['predUp'] = fPred.Get('predU')
-    mass_plot['predDown'] = fPred.Get('predD')
     
-    outDataCardsDir = "datacards_UnB_v1_"+searchRegion+"_Aug29_symmetricSyst/"
+    outDataCardsDir = "datacards_"+searchRegion+"_test/"
     os.system("mkdir -p {0}".format(outDataCardsDir))
 
     h2=rt.TH2F("h2",";Target Mass [GeV];Mass Window [GeV];[a.u.]",120,0,3000,400,0,4000)
@@ -620,10 +573,10 @@ if __name__ == '__main__':
         bkg_2017_corrTemplateIh_down = integralHisto(mass_plot['pred_2017_corrih'],xmin,xmax)
         bkg_2017_corrTemplateMom_up = integralHisto(mass_plot['pred_2017_corrmom'],xmin,xmax)
         bkg_2017_corrTemplateMom_down = integralHisto(mass_plot['pred_2017_corrmom'],xmin,xmax)
-        bkg_2017_fitIh_up = 0
-        bkg_2017_fitIh_down = 0
-        bkg_2017_fitMom_up = 0
-        bkg_2017_fitMom_down = 0
+        bkg_2017_fitIh_up = integralHisto(mass_plot['pred_2017_fitihup'],xmin,xmax)
+        bkg_2017_fitIh_down =integralHisto(mass_plot['pred_2017_fitihdown'],xmin,xmax)
+        bkg_2017_fitMom_up =integralHisto(mass_plot['pred_2017_fitmomup'],xmin,xmax)
+        bkg_2017_fitMom_down =integralHisto(mass_plot['pred_2017_fitmomdown'],xmin,xmax)
         bkg_2017_correctionBias = integralHisto(mass_plot['pred_2017_corrbias'],xmin,xmax)
 
         bkg_2018_nominal = integralHisto(mass_plot['pred_2018_nominal'],xmin,xmax)
@@ -638,10 +591,10 @@ if __name__ == '__main__':
         bkg_2018_corrTemplateIh_down = integralHisto(mass_plot['pred_2018_corrih'],xmin,xmax)
         bkg_2018_corrTemplateMom_up = integralHisto(mass_plot['pred_2018_corrmom'],xmin,xmax)
         bkg_2018_corrTemplateMom_down = integralHisto(mass_plot['pred_2018_corrmom'],xmin,xmax)
-        bkg_2018_fitIh_up = 0
-        bkg_2018_fitIh_down = 0
-        bkg_2018_fitMom_up = 0
-        bkg_2018_fitMom_down = 0
+        bkg_2018_fitIh_up = integralHisto(mass_plot['pred_2018_fitihup'],xmin,xmax)
+        bkg_2018_fitIh_down =integralHisto(mass_plot['pred_2018_fitihdown'],xmin,xmax)
+        bkg_2018_fitMom_up =integralHisto(mass_plot['pred_2018_fitmomup'],xmin,xmax)
+        bkg_2018_fitMom_down =integralHisto(mass_plot['pred_2018_fitmomdown'],xmin,xmax)
         bkg_2018_correctionBias = integralHisto(mass_plot['pred_2018_corrbias'],xmin,xmax)
 
         signal_yield=integralHisto(nominalSignal,xmin,xmax)
@@ -667,9 +620,9 @@ if __name__ == '__main__':
         yield_plus1sigma_plus2sigma=0
         yield_minus1sigma_plus2sigma=0
 
-        print (int(mean-stddev), int(mean+2*stddev))
-        print ("integral 2017: ", mass_plot['obs_2017'].Integral(mass_plot['obs_2017'].FindBin(mean-stddev),mass_plot['obs_2017'].FindBin(mean+2*stddev)))
-        print ("integral 2018: ", mass_plot['obs_2018'].Integral(mass_plot['obs_2018'].FindBin(mean-stddev),mass_plot['obs_2018'].FindBin(mean+2*stddev)))
+        #print (int(mean-stddev), int(mean+2*stddev))
+        #print ("integral 2017: ", mass_plot['obs_2017'].Integral(mass_plot['obs_2017'].FindBin(mean-stddev),mass_plot['obs_2017'].FindBin(mean+2*stddev)))
+        #print ("integral 2018: ", mass_plot['obs_2018'].Integral(mass_plot['obs_2018'].FindBin(mean-stddev),mass_plot['obs_2018'].FindBin(mean+2*stddev)))
 
         if(signal_yield!=0):
             signal_pu_up/=signal_yield
@@ -713,17 +666,12 @@ if __name__ == '__main__':
             bkg_2017_corrTemplateIh_down/=bkg_2017_nominal
             bkg_2017_corrTemplateMom_up/=bkg_2017_nominal
             bkg_2017_corrTemplateMom_down/=bkg_2017_nominal
-            #bkg_2017_fitIh_up/=bkg_2017_nominal
-            #bkg_2017_fitIh_down/=bkg_2017_nominal
-            #bkg_2017_fitMom_up/=bkg_2017_nominal
-            #bkg_2017_fitMom_down/=bkg_2017_nominal
-            bkg_2017_fitIh_up=1
-            bkg_2017_fitIh_down=1
-            bkg_2017_fitMom_up=1
-            bkg_2017_fitMom_down=1
+            bkg_2017_fitIh_up/=bkg_2017_nominal
+            bkg_2017_fitIh_down/=bkg_2017_nominal
+            bkg_2017_fitMom_up/=bkg_2017_nominal
+            bkg_2017_fitMom_down/=bkg_2017_nominal
             bkg_2017_correctionBias/=bkg_2017_nominal
 
-        
         if(bkg_2018_nominal!=0):
             bkg_2018_stat/=bkg_2018_nominal
             bkg_2018_etaBinning_up/=bkg_2018_nominal
@@ -736,14 +684,10 @@ if __name__ == '__main__':
             bkg_2018_corrTemplateIh_down/=bkg_2018_nominal
             bkg_2018_corrTemplateMom_up/=bkg_2018_nominal
             bkg_2018_corrTemplateMom_down/=bkg_2018_nominal
-            #bkg_2018_fitIh_up/=bkg_2018_nominal
-            #bkg_2018_fitIh_down/=bkg_2018_nominal
-            #bkg_2018_fitMom_up/=bkg_2018_nominal
-            #bkg_2018_fitMom_down/=bkg_2018_nominal
-            bkg_2018_fitIh_up=1
-            bkg_2018_fitIh_down=1
-            bkg_2018_fitMom_up=1
-            bkg_2018_fitMom_down=1
+            bkg_2018_fitIh_up/=bkg_2018_nominal
+            bkg_2018_fitIh_down/=bkg_2018_nominal
+            bkg_2018_fitMom_up/=bkg_2018_nominal
+            bkg_2018_fitMom_down/=bkg_2018_nominal
             bkg_2018_correctionBias/=bkg_2018_nominal
 
         sig_2017_unc = {
@@ -841,7 +785,8 @@ if __name__ == '__main__':
         signal_yield_norm=signal_yield*41.5/101
         signal_yield_norm=signal_yield*59.7/101
 
-        make_datacard_hscp_combining2017and2018(outDataCardsDir,  signal, signal_yield*41.5/101., signal_yield*59.7/101., bkg_2017_nominal, bkg_2018_nominal, obs_2017, obs_2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated)
+        ### fill the datacard
+        make_datacard_hscp_combining2017and2018(outDataCardsDir, signal, signal_yield*41.5/101., signal_yield*59.7/101., bkg_2017_nominal, bkg_2018_nominal, obs_2017, obs_2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated)
         
         bkg=bkg_2017_nominal
         bckg_up=totalUncertainy(tot_unc_bkg_2017,1)
@@ -850,7 +795,7 @@ if __name__ == '__main__':
         signal_down=totalUncertainy(tot_unc_sig_2017,0)
         signal_yield_norm=signal_yield*41.5/101.
         
-        makeYieldFile(text_file_tex,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
+        makeYieldFile(text_file_tex_2017,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
         
         bkg=bkg_2018_nominal
         bckg_up=totalUncertainy(tot_unc_bkg_2018,1)
@@ -871,20 +816,16 @@ if __name__ == '__main__':
     grTotal = create_TGraph(x, yTotal, axis_title=['target mass [GeV]', 'Systematics uncertainties [%]'])
 
 
-    text_file_tex.write('\n \\end{tabular}')
-    text_file_tex.write('\n \\end{center}')
-    text_file_tex.write('\n \\end{document}')
-
-    text_file_tex.close()
-            
+    text_file_tex_2017.write('\n \\end{tabular}')
+    text_file_tex_2017.write('\n \\end{center}')
+    text_file_tex_2017.write('\n \\end{document}')
+    text_file_tex_2017.close()
 
     text_file_tex_2018.write('\n \\end{tabular}')
     text_file_tex_2018.write('\n \\end{center}')
     text_file_tex_2018.write('\n \\end{document}')
-
     text_file_tex_2018.close()
             
-
     tdrstyle.setTDRStyle()
     CMS_lumi.cmsText     = "CMS"
     iPos = 0
@@ -893,7 +834,6 @@ if __name__ == '__main__':
     if( iPos==0 ): CMS_lumi.relPosX = 0.12
     CMS_lumi.lumi_13TeV  = "101 fb^{-1}"
     
-        
     rt.gStyle.SetOptStat(0)
     c1=rt.TCanvas()
     h2.Draw("col")

@@ -1,5 +1,3 @@
-
-
 import ROOT as rt
 # import root_numpy as rtnp
 import csv
@@ -22,19 +20,15 @@ CMS_lumi.writeExtraText = 0
 
 print(sys.version)
 
-lifetime='3'
-
 searchRegion='SR3'
-labelSR=searchRegion+'_29aug'
-#labelSR=searchRegion+'_8june_noSignalSystematics'
-#labelSR=searchRegion+'_rescalePAS2016'
-#labelSR=searchRegion+'_rescalePAS2016_MuTriggerEfficiency'
-#labelSR=searchRegion+'_7june_functionOfLifetime_'+lifetime+'ns'
+labelSR=searchRegion+'_test'
+
 labelSignal="ppStau"
 #labelSignal="gluino"
 #labelSignal="stop"
 #labelSignal="DYQ1"
 #labelSignal="DYQ2"
+
 intersect_bool=True
 
 xsec_list = 'xSec.dat'
@@ -81,19 +75,16 @@ for m in models:
 
 print 'sample names, signal names',sample_names, signal_names
 
-
 signal = []
 for k,v in signal_names.items():signal += v
 print 'signal',signal
-
-
 
 limitTrees =OrderedDict()
 dataCards = OrderedDict()
 limits = OrderedDict()
 
-dataCardDir = 'datacards_UnB_v1_'+searchRegion+'_Aug29/'
-limitDir = 'limitTrees_UnB_v1_'+searchRegion+'_Aug29/'
+dataCardDir = 'datacards_'+searchRegion+'_test/'
+limitDir = 'limitTrees_'+searchRegion+'_test/'
 
 for s in signal:
     print 'signal:', s
@@ -334,6 +325,7 @@ c.SetTickx(1)
 
 c.Draw()
 
+os.system('mkdir -p limit_plots_dir')
 ofile_name="limit_plots_dir/limit_"+labelSignal+"_"+labelSR
 
 c.SaveAs(ofile_name+".root")
