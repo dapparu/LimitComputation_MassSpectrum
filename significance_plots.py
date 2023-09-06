@@ -11,13 +11,7 @@ sys.argv.append(' -b- ')
 
 from collections import OrderedDict
 import uproot
-import pandas as pd
-import math
-import scipy
-import awkward
 import numpy as np
-import time
-from array import array
 from histo_utilities import std_color_list, create_TGraph, find_intersect
 
 rt.gROOT.SetBatch(True)
@@ -173,12 +167,6 @@ for i,m in enumerate(limitTrees_999muMinus2sigma.keys()):
         T = uproot.open(limitTrees_999muMinus2sigma[m])['limit']
         limits_999muMinus2sigma[m] = np.array(T.array('limit'))
 
-#print 'limits90',limits_90
-
-# make plots
-
-
-
 h = {}
 
 c=rt.TCanvas()
@@ -252,11 +240,7 @@ CMS_lumi.cmsText     = "CMS"
 iPos = 0
 CMS_lumi.extraText = "Internal"
 CMS_lumi.writeExtraText=True
-CMS_lumi.cmsText=""
-CMS_lumi.extraText = "Private work"
-
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
-# CMS_lumi.CMS_lumi(c, 4, 0)
 CMS_lumi.lumi_13TeV  = "101 fb^{-1}"
 CMS_lumi.CMS_lumi(c, 4, iPos)
 
@@ -265,7 +249,7 @@ c.SetTickx(1)
 
 c.Draw()
 
-ofile_name="limits_pdf_opti/test_significance_"+labelSignal+"_"+labelSR
+ofile_name="significance_plots_dir/significance_"+labelSignal+"_"+labelSR
 
 c.SaveAs(ofile_name+".root")
 c.SaveAs(ofile_name+".pdf")

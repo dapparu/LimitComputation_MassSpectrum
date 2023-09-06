@@ -11,13 +11,7 @@ sys.argv.append(' -b- ')
 
 from collections import OrderedDict
 import uproot
-import pandas as pd
-import math
-import scipy
-import awkward
 import numpy as np
-import time
-from array import array
 from histo_utilities import std_color_list, create_TGraph, find_intersect
 
 rt.gROOT.SetBatch(True)
@@ -37,10 +31,10 @@ labelSR=searchRegion+'_29aug'
 #labelSR=searchRegion+'_rescalePAS2016_MuTriggerEfficiency'
 #labelSR=searchRegion+'_7june_functionOfLifetime_'+lifetime+'ns'
 labelSignal="ppStau"
-labelSignal="gluino"
-labelSignal="stop"
-labelSignal="DYQ1"
-labelSignal="DYQ2"
+#labelSignal="gluino"
+#labelSignal="stop"
+#labelSignal="DYQ1"
+#labelSignal="DYQ2"
 intersect_bool=True
 
 xsec_list = 'xSec.dat'
@@ -94,44 +88,17 @@ print 'signal',signal
 
 
 
-limitTrees_90 =OrderedDict()
-dataCards_90 = OrderedDict()
-limits_90 = OrderedDict()
-
-limitTrees_99 =OrderedDict()
-dataCards_99 = OrderedDict()
-limits_99 = OrderedDict()
-
-limitTrees_999 =OrderedDict()
-dataCards_999 = OrderedDict()
-limits_999 = OrderedDict()
-
-
-dataCardDir = '/opt/sbg/cms/safe1/cms/dapparu/HSCP/Combine/CMSSW_11_3_4/src/HiggsAnalysis/HSCPLimit/combine/datacards/mass/v_'+labelSR+'/'
-limitDir = dataCardDir.replace('datacards', 'limitTrees')
-
-#dataCardDir = 'datacards_test_'+searchRegion+'_5may_v3/'
-#limitDir = 'limitTrees_test_'+searchRegion+'_5may_v3/'
-
-#dataCardDir = 'datacards_test_'+searchRegion+'_rescalePAS2016/'
-#limitDir = 'limitTrees_test_'+searchRegion+'_rescalePAS2016/'
-
-#dataCardDir = 'datacards_test_'+searchRegion+'_7june_functionOfLifetime_'+lifetime+'ns/'
-#limitDir = 'limitTrees_test_'+searchRegion+'_7june_functionOfLifetime_'+lifetime+'ns/'
-
-#dataCardDir = 'datacards_test_'+searchRegion+'_8june_noSignalSystematics/'
-#limitDir = 'limitTrees_test_'+searchRegion+'_8june_noSignalSystematics/'
-
-#dataCardDir = 'datacards_test_'+searchRegion+'_July11_DYToTauPrime/'
-#limitDir = 'limitTrees_test_'+searchRegion+'_July11_DYToTauPrime/'
+limitTrees =OrderedDict()
+dataCards = OrderedDict()
+limits = OrderedDict()
 
 dataCardDir = 'datacards_UnB_v1_'+searchRegion+'_Aug29/'
 limitDir = 'limitTrees_UnB_v1_'+searchRegion+'_Aug29/'
 
 for s in signal:
     print 'signal:', s
-    limitTrees_90[s] = {}
-    dataCards_90[s] = {}
+    limitTrees[s] = {}
+    dataCards[s] = {}
     if 'gluino' in s:
         name = s.replace('HSCPg', 'G')
     elif 'Stau' in s:
@@ -144,35 +111,26 @@ for s in signal:
         name = s.replace('HSCPtauPrimeCharge2e_M-', 'DYcharge2e_')
     name = name.replace('_M-', '')
     print 'name:', name
-    #dataCards_90[s] = dataCardDir + '{}_nominal.txt'.format(name)
-    dataCards_90[s] = dataCardDir + '{}_2018.txt'.format(name)
-    #dataCards_90[s] = dataCardDir + '{}.txt'.format(name)
-    #dataCards_90[s] = dataCardDir + '{}_rescaledPAS2016.txt'.format(name)
-    print 'datacard:', dataCards_90[s]
-    #print limitDir + 'higgsCombine.{}'.format(name) + '.AsymptoticLimits.mH120.root'
-    limitTrees_90[s] = limitDir + 'higgsCombine.{}'.format(name) + '_2018.AsymptoticLimits.mH120.root'
+    dataCards[s] = dataCardDir + '{}_2018.txt'.format(name)
+    print 'datacard:', dataCards[s]
+    limitTrees[s] = limitDir + 'higgsCombine.{}'.format(name) + '_2018.AsymptoticLimits.mH120.root'
     print (limitDir + 'higgsCombine.{}'.format(name) + '_2018.AsymptoticLimits.mH120.root')
 
-for i,m in enumerate(limitTrees_90.keys()):
-    if not os.path.isfile(dataCards_90[m]):
+for i,m in enumerate(limitTrees.keys()):
+    if not os.path.isfile(dataCards[m]):
         continue
-    if len(uproot.open(limitTrees_90[m]).keys()) == 2:
-        T = uproot.open(limitTrees_90[m])['limit']
-        limits_90[m] = np.array(T.array('limit'))
+    if len(uproot.open(limitTrees[m]).keys()) == 2:
+        T = uproot.open(limitTrees[m])['limit']
+        limits[m] = np.array(T.array('limit'))
 
-print 'limits90',limits_90
+print 'limits',limits
 
 # load theoretical xsec
 import json
 path = 'xsec/json/'
-filenames = {
-   #'gluino': 'pp13_gluino_NNLO+NNLL.json',
-#   'pairStau':'pp13_slep_LR_NLO+NLL_PDF4LHC.json',
-#   'gmsbStau': 'pp13_stau_LR_NLO+NLL_PDF4LHC.json',
-#     'stop':'pp13_squark_NNLO+NNLL.json',
-#     'chargino':'pp13_wino_C1C1_NLO+NLL.json',
-#     'stau': 'pp13_stau_LR_NLO+NLL_PDF4LHC.json',
-}
+
+filenames={}
+
 if(labelSignal=="gluino"):
     filenames = {
         'gluino': 'pp13_gluino_NNLO+NNLL.json',
@@ -185,7 +143,6 @@ elif(labelSignal=="ppStau"):
     }
 elif(labelSignal=="stop"):
     filenames = {
-        #'stop':'pp13_squark_NNLO+NNLL.json',
         'stop':'pp13_stopsbottom_NNLO+NNLL.json',
     }
 elif(labelSignal=="DYQ1"):
@@ -235,8 +192,6 @@ h_obs = {}
 h_others = {}
 for i, k in enumerate(mass.keys()):
     h[k+'theoretical'] = create_TGraph(mass[k]/1000.,theoretical_xsec[k],  axis_title=['mass [TeV]', '95% CL Limit on #sigma [pb]'])
-#     leg.AddEntry(h[k+'theoretical'], 'theoretical_'+k)
-    #h[k+'theoretical'].SetLineColor(std_color_list[i])
     if(i==0):
         h[k+'theoretical'].SetLineColor(4)
     if(i==1):
@@ -253,23 +208,19 @@ for i, m in enumerate(signal_names.keys()):
     y_up2 = []
     y_down = []
     y_down2 = []
-    for key in limits_90.keys():
+    for key in limits.keys():
         print 'key:', key
-        if m in key and len(limits_90[key])>0:
+        if m in key and len(limits[key])>0:
             if (('gluino' in key) or ('Stau' in key) or ('stop' in key) or ('HSCPtauPrimeCharge1e' in key) or ('HSCPtauPrimeCharge2e' in key)):
                 print 'xsec key', xsec_hscp[key]
-                y.append(limits_90[key][2]*xsec_hscp[key])
-                y_up.append(limits_90[key][3]*xsec_hscp[key])
-                y_up2.append(limits_90[key][4]*xsec_hscp[key])
-                y_down.append(limits_90[key][1]*xsec_hscp[key])
-                y_down2.append(limits_90[key][0]*xsec_hscp[key])
+                y.append(limits[key][2]*xsec_hscp[key])
+                y_up.append(limits[key][3]*xsec_hscp[key])
+                y_up2.append(limits[key][4]*xsec_hscp[key])
+                y_down.append(limits[key][1]*xsec_hscp[key])
+                y_down2.append(limits[key][0]*xsec_hscp[key])
 
-                y_obs.append(limits_90[key][5]*xsec_hscp[key])
-                #y.append(limits_90[key][3]*xsec_hscp[key])
-                #y_up.append(limits_90[key][4]*xsec_hscp[key])
-                #y_up2.append(limits_90[key][5]*xsec_hscp[key])
-                #y_down.append(limits_90[key][2]*xsec_hscp[key])
-                #y_down2.append(limits_90[key][1]*xsec_hscp[key])
+                y_obs.append(limits[key][5]*xsec_hscp[key])
+              
             x.append(float(key[key.find('M-')+2:])/1000.)
             print x
 
@@ -286,8 +237,6 @@ for i, m in enumerate(h.keys()):
         h[m].SetLineColor(2)
         if(labelSignal=="gluino"):
             leg.AddEntry(h[m],"#sigma_{th}^{NNLO+NNLL} (pp #rightarrow #tilde{g}#tilde{g})", "L")
-        #elif(labelSignal=="ppStau"):
-        #    leg.AddEntry(h[m],"#sigma_{th}^{NLO+NLL} (pp #rightarrow #tilde{#tau}#tilde{#tau})", "L")
         elif(labelSignal=="stop"):
             leg.AddEntry(h[m],"#sigma_{th}^{NNLO+NNLL} (pp #rightarrow #tilde{t}#tilde{t})", "L")
         elif(m=="pairStauRRtheoretical"):
@@ -310,16 +259,12 @@ for i, m in enumerate(h.keys()):
         leg.AddEntry(h[m],"Median expected", "L")
         h[m].SetLineColor(1)
 
-    #h[m].SetLineColor(std_color_list[i])
-    #h[m].SetLineColor(1)
-
     h[m].SetLineWidth(3)
 
     h[m].SetLineStyle(2)
     if('theoretical' in m):
         h[m].SetLineStyle(1)
     h[m].SetLineWidth(3)
-
 
     h[m].GetXaxis().SetTitleOffset(1)
     h[m].GetXaxis().SetLabelSize(12)
@@ -331,7 +276,6 @@ for i, m in enumerate(h.keys()):
 for i,m in enumerate(h.keys()):
     if 'theoretical' in m:
         continue
-    #h_exp1sig[m].SetFillColorAlpha(std_color_list[i],0.5)
     h_exp1sig[m].SetFillColorAlpha(8,1)
     h_exp2sig[m].SetFillColorAlpha(5,1)
     h_exp2sig[m].Draw('AF')
@@ -372,7 +316,6 @@ for i,m in enumerate(h.keys()):
         h[m].GetXaxis().SetLimits(200,2200.0)
         h[m].GetYaxis().SetRangeUser(5e-7,1e-2)
     h[m].Draw('Lsame')
-    #h[m].Draw('Lsame' if i == 0 else 'Lsame')
 
 
 tdrstyle.setTDRStyle()
@@ -380,30 +323,18 @@ CMS_lumi.cmsText     = "CMS"
 iPos = 0
 CMS_lumi.extraText = "Internal"
 CMS_lumi.writeExtraText=True
-
-#CMS_lumi.cmsText     = ""
-#iPos = 0
-#CMS_lumi.extraText = "Private work"
-#CMS_lumi.writeExtraText=True
-
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
-# CMS_lumi.CMS_lumi(c, 4, 0)
 CMS_lumi.lumi_13TeV  = "101 fb^{-1}"
 CMS_lumi.CMS_lumi(c, 4, iPos)
-
-
 
 leg.Draw()
 c.SetLogy()
 c.SetTicky(1)
 c.SetTickx(1)
 
-
-#tdrstyle.setTDRStyle()
 c.Draw()
 
-ofile_name="Aug28_UnB_v1/limit_"+labelSignal+"_"+labelSR
-#ofile_name="rescaledPAS2016/limit_"+labelSignal+"_"+labelSR
+ofile_name="limit_plots_dir/limit_"+labelSignal+"_"+labelSR
 
 c.SaveAs(ofile_name+".root")
 c.SaveAs(ofile_name+".pdf")
@@ -414,7 +345,6 @@ if(labelSignal=="gluino" and intersect_bool==True):
     print('gluino2', find_intersect(h_exp2sig['gluino_'+labelSR],h['gluinotheoretical']))
     print('obs', find_intersect(h_obs['gluino_'+labelSR],h['gluinotheoretical']))
 elif(labelSignal=="ppStau" and intersect_bool==True):
-    #print('pairStau', find_intersect(h['pairStau_'+labelSR],h['pairStautheoretical']))
     print('pairStauRR', find_intersect(h['pairStau_'+labelSR],h['pairStauRRtheoretical']))
     print('1sigma', find_intersect(h_exp1sig['pairStau_'+labelSR],h['pairStauRRtheoretical']))
     print('2sigma', find_intersect(h_exp2sig['pairStau_'+labelSR],h['pairStauRRtheoretical']))
@@ -442,10 +372,3 @@ elif(labelSignal=="DYQ2" and intersect_bool==True):
     print('1sigma', find_intersect(h_exp1sig['Charge2e_'+labelSR],h['DYQ2theoretical']))
     print('2sigma', find_intersect(h_exp2sig['Charge2e_'+labelSR],h['DYQ2theoretical']))
     print('obs', find_intersect(h_obs['Charge2e_'+labelSR],h['DYQ2theoretical']))
-
-
-
-#print('gluino_exp', find_intersect(h_exp1sig['gluino_SR2'],h['gluinotheoretical']))
-#print('gluino', find_intersect(h['gluino_Ias99.9'],h['gluinotheoretical']))
-
-

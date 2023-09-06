@@ -1,11 +1,3 @@
-"""
-
-2022/10/03
-create datacard from the mass distributions of signal and data in region D
-using distributions that are already normalized from Dylan
-
-"""
-
 import ROOT as rt
 import csv
 import re
@@ -15,12 +7,7 @@ import os
 sys.argv.append(' -b- ')
 
 from collections import OrderedDict
-import uproot
-
-import scipy
-import awkward
 import numpy as np
-import time
 
 from histo_utilities import std_color_list, create_TGraph, find_intersect
 
@@ -59,51 +46,6 @@ def BiasCorrection(h1,a_,b_):
         h.SetBinContent(i,h.GetBinContent(i)*(a_*mass+b_))
     return h
 
-def make_datacard_hscp(outDataCardsDir,  modelName, signal, bkg, observation, sig_unc, bkg_unc):
-
-
-    text_file = open(outDataCardsDir+modelName+".txt", "w")
-
-    text_file.write('imax {0} \n'.format(1))
-    text_file.write('jmax {0} \n'.format(1))
-    text_file.write('kmax * \n')
-    text_file.write('shapes * * FAKE \n')
-
-
-
-    text_file.write('--------------- \n')
-    text_file.write('--------------- \n')
-    text_file.write('bin \t  chD \n')
-    text_file.write('observation \t {0:6.2f} \n'.format(observation))
-    text_file.write('------------------------------ \n')
-    text_file.write('bin \t chD \t chD \n')
-    text_file.write('process \t signal \t bkg \n')
-    text_file.write('process \t 0 \t 1 \t \n')
-    text_file.write('rate \t {} \t {} \n'.format(signal, bkg))
-    text_file.write('------------------------------ \n')
-
-    bckg_up=0
-    bckg_down=0
-    signal_up=0
-    signal_down=0
-#   #### uncertainties ####
-    for k,v in sig_unc.items():
-        if len(v)==2:
-            text_file.write('{} \t lnN \t {}/{} \t - \n'.format(k, v[0],v[1]))
-            signal_down=v[0]
-            signal_up=v[1]
-        else:text_file.write('{} \t lnN \t {} \t - \n'.format(k, v[0]))
-        #text_file.write('{} \t lnN \t {} \t - \n'.format(k, 1+v))
-
-    for k,v in bkg_unc.items():
-        if len(v)==2:
-            text_file.write('{} \t lnN \t -  \t {}/{} \n'.format(k, v[0],v[1]))
-            bckg_down=v[0]
-            bckg_up=v[1]
-        else:text_file.write('{} \t lnN \t -  \t {} \n'.format(k, v[0]))
-
-    text_file.close()
-
 def make_datacard_hscp_combining2017and2018(outDataCardsDir,  modelName, signal2017, signal2018, bkg2017, bkg2018, observation2017, observation2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated):
 
     text_file = open(outDataCardsDir+modelName+".txt", "w")
@@ -112,7 +54,6 @@ def make_datacard_hscp_combining2017and2018(outDataCardsDir,  modelName, signal2
     text_file.write('jmax {0} \n'.format(1))
     text_file.write('kmax * \n')
     text_file.write('shapes * * FAKE \n')
-
     text_file.write('--------------- \n')
     text_file.write('--------------- \n')
     text_file.write('bin \t  Ch2017 \t Ch2018 \n')
@@ -124,7 +65,7 @@ def make_datacard_hscp_combining2017and2018(outDataCardsDir,  modelName, signal2
     text_file.write('rate \t {} \t {} \t {} \t {} \n'.format(signal2017, bkg2017, signal2018, bkg2018))
     text_file.write('------------------------------ \n')
 
-#   #### uncertainties ####
+    #### uncertainties ####
     for k,v in sig_2017_unc.items():
         if len(v)==2:
             text_file.write('{} \t lnN \t {}/{} \t - \t - \t - \n'.format(k, v[0],v[1]))
@@ -185,18 +126,11 @@ def totalUncertainy(unc,i=1):
     return np.sqrt(total)
 
 def makeYieldFile(text_file_tex,modelName,bkg,bckg_up,bckg_down,signal,signal_up,signal_down):
-    #typeOfDisplay=""
-    #print bkg,bckg_up,bckg_down,bkg*bckg_up,bkg*bckg_down
     typeOfDisplay='.2E'
     text_file_tex.write('\n '+modelName+' & $'+str(format(bkg,typeOfDisplay))+'^{+'+str(format(bkg*bckg_up,typeOfDisplay))+'}_{-'+str(format(bkg*bckg_down,typeOfDisplay))+'}$ & $'+str(format(signal,typeOfDisplay))+'^{+'+str(format(signal*signal_up,typeOfDisplay))+'}_{-'+str(format(signal*signal_down,typeOfDisplay))+'}$ \\\\')
-    #text_file_tex.write('\n '+modelName+' & $'+str(bkg)+'^{+'+str(bckg_up)+'}_{-'+str(bckg_down)+'}$ & $'+str(signal)+'^{+'+str(signal_up)+'}_{-'+str(signal_down)+'}$ \\\\')
     text_file_tex.write('\n \hline')  
     
 def fillH2(h2,targetMass,mean,stddev,s):
-    #targetMass/=1000
-    #mean/=1000
-    #stddev/=1000
-    #print targetMass, mean, stddev
     xmin=mean-stddev
     if (xmin<300): 
         xmin=300
@@ -205,7 +139,6 @@ def fillH2(h2,targetMass,mean,stddev,s):
         if (i!=h2.GetXaxis().FindBin(targetMass)): 
                 continue
         else:
-            #for j in range(h2.GetYaxis().FindBin(mean-stddev),h2.GetYaxis().FindBin(mean+2*stddev)):
             for j in range(h2.GetYaxis().FindBin(xmin),h2.GetYaxis().FindBin(xmax)):
                 if("Gluino" in s):
                     h2.SetBinContent(i,j,1)
@@ -223,15 +156,9 @@ def pushSyst(syst1,syst2):
 def integralHisto(h,xmin,xmax):
     return h.Integral(h.FindBin(xmin),h.FindBin(xmax))
 
-
-
 if __name__ == '__main__':
 
-    f=rt.TF1("f","exp(-x/300)",0,1000)
-    integralF = f.Integral(30,1000)/f.Integral(0,1000)
-    #print integralF
-
-# # load mass distributions
+    # load mass distributions
     fpath =OrderedDict()
     fpathPred =OrderedDict()
     massPlotsSignal =OrderedDict()
@@ -241,6 +168,7 @@ if __name__ == '__main__':
     regionSignal='SR3'
     regionBckg=''
     systSignal="Stau"
+    searchRegion=regionSignal
     
     if(regionSignal=='SR1'):
         regionBckg='90ias100'
@@ -249,7 +177,7 @@ if __name__ == '__main__':
     if(regionSignal=='SR3'):
         regionBckg='999ias100'
 
-    text_file_tex = open('yieldDir/yield'+regionSignal+'_2017_5may.tex', "w")
+    text_file_tex = open('yieldDir/yield'+regionSignal+'_2017.tex', "w")
     text_file_tex.write('\n \\documentclass{article}')
     text_file_tex.write('\n \\begin{document}')
     text_file_tex.write('\n \\begin{center}')
@@ -259,7 +187,7 @@ if __name__ == '__main__':
     text_file_tex.write('\n \hline')
     text_file_tex.write('\n \hline')
 
-    text_file_tex_2018 = open('yieldDir/yield'+regionSignal+'_2018_5may.tex', "w")
+    text_file_tex_2018 = open('yieldDir/yield'+regionSignal+'_2018.tex', "w")
     text_file_tex_2018.write('\n \\documentclass{article}')
     text_file_tex_2018.write('\n \\begin{document}')
     text_file_tex_2018.write('\n \\begin{center}')
@@ -280,8 +208,6 @@ if __name__ == '__main__':
 
     ofileBase = rt.TFile("base.root","RECREATE")
 
-
-    #fpath['Gluino400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-400_CodeV'+codeVersionSignal+'_v1.root'
     fpath['Gluino500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-500_CodeV'+codeVersionSignal+'_v1.root'
     fpath['Gluino800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-800_CodeV'+codeVersionSignal+'_v1.root'
     fpath['Gluino1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1000_CodeV'+codeVersionSignal+'_v1.root'
@@ -302,7 +228,6 @@ if __name__ == '__main__':
     fpath['Stop2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2200_CodeV'+codeVersionSignal+'_v1.root'
     fpath['Stop2400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2400_CodeV'+codeVersionSignal+'_v1.root'
     fpath['Stop2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2600_CodeV'+codeVersionSignal+'_v1.root'
-    #fpath['pairStau247_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-247_CodeV'+codeVersionSignal+'_v1.root'
     fpath['pairStau308_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-308_CodeV'+codeVersionSignal+'_v1.root'
     fpath['pairStau432_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-432_CodeV'+codeVersionSignal+'_v1.root'
     fpath['pairStau557_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-557_CodeV'+codeVersionSignal+'_v1.root'
@@ -310,9 +235,6 @@ if __name__ == '__main__':
     fpath['pairStau745_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-745_CodeV'+codeVersionSignal+'_v1.root'
     fpath['pairStau871_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-871_CodeV'+codeVersionSignal+'_v1.root'
     fpath['pairStau1029_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-1029_CodeV'+codeVersionSignal+'_v1.root'
-    #fpath['DYcharge1e_100'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-100_CodeV80p0_v1.root'
-    #fpath['DYcharge1e_200'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-200_CodeV80p0_v1.root'
-    #fpath['DYcharge1e_400'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-400_CodeV80p0_v1.root'
     fpath['DYcharge1e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-500_CodeV80p0_v1.root'
     fpath['DYcharge1e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-800_CodeV80p0_v1.root'
     fpath['DYcharge1e_1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1000_CodeV80p0_v1.root'
@@ -320,8 +242,6 @@ if __name__ == '__main__':
     fpath['DYcharge1e_1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1800_CodeV80p0_v1.root'
     fpath['DYcharge1e_2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2200_CodeV80p0_v1.root'
     fpath['DYcharge1e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2600_CodeV80p0_v1.root'
-    #fpath['DYcharge2e_100'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-100_CodeV80p0_v1.root'
-    #fpath['DYcharge2e_200'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-200_CodeV80p0_v1.root'
     fpath['DYcharge2e_400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-400_CodeV80p0_v1.root'
     fpath['DYcharge2e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-500_CodeV80p0_v1.root'
     fpath['DYcharge2e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-800_CodeV80p0_v1.root'
@@ -332,8 +252,7 @@ if __name__ == '__main__':
     fpath['DYcharge2e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-2600_CodeV80p0_v1.root'
 
     idirSignal='HSCParticleAnalyzer/BaseName/'
-    #searchRegion='SR2'
-    searchRegion=regionSignal
+    
     regionBckg=''
 
     if(searchRegion=='SR1'):
@@ -364,7 +283,6 @@ if __name__ == '__main__':
     nPE='200'
     endLabel='_19april'
     if(searchRegion=='SR3'):
-        #endLabel='_21april_SR3'
         endLabel='_21aug'
 
     codeVersion='UnB_v1_v1'
@@ -529,14 +447,6 @@ if __name__ == '__main__':
     mass_plot['pred_2018_corrbias'] = BiasCorrection(mass_plot['pred_2018_nominal'],p1,p0)
 
     ofileBase.cd()
-    #mass_plot['pred_2018_nominal'].SetName("nominal")
-    #mass_plot['pred_2018_etaup'].SetName("EtaUp")
-    #mass_plot['pred_2018_etadown'].SetName("EtaDown")
-#
-    #mass_plot['pred_2018_nominal'].Write()
-    #mass_plot['pred_2018_etaup'].Write()
-    #mass_plot['pred_2018_etadown'].Write()
-    
     
     name = {
        'Gluino500_2018': '$\\tilde{g}$ (M=500 GeV)',
@@ -761,113 +671,6 @@ if __name__ == '__main__':
         print ("integral 2017: ", mass_plot['obs_2017'].Integral(mass_plot['obs_2017'].FindBin(mean-stddev),mass_plot['obs_2017'].FindBin(mean+2*stddev)))
         print ("integral 2018: ", mass_plot['obs_2018'].Integral(mass_plot['obs_2018'].FindBin(mean-stddev),mass_plot['obs_2018'].FindBin(mean+2*stddev)))
 
-        '''
-        for i in range(0,nominalSignal.GetNbinsX()+1):
-            yield_total+=nominalSignal.GetBinContent(i)
-            if (nominalSignal.GetBinLowEdge(i)>= mean-2*stddev and nominalSignal.GetBinLowEdge(i)<=mean-stddev):
-                yield_minus2sigma_minus1sigma+=nominalSignal.GetBinContent(i)
-            if (nominalSignal.GetBinLowEdge(i)>= mean-stddev and nominalSignal.GetBinLowEdge(i)<=mean):
-                yield_minus1sigma_mu+=nominalSignal.GetBinContent(i)
-            if (nominalSignal.GetBinLowEdge(i)>= mean and nominalSignal.GetBinLowEdge(i)<=mean+stddev):
-                yield_mu_plus1sigma+=nominalSignal.GetBinContent(i)
-            if (nominalSignal.GetBinLowEdge(i)>= mean+stddev and nominalSignal.GetBinLowEdge(i)<=mean+2*stddev):
-                yield_plus1sigma_plus2sigma+=nominalSignal.GetBinContent(i)
-            if (nominalSignal.GetBinLowEdge(i)>= mean-stddev and nominalSignal.GetBinLowEdge(i)<=mean+2*stddev):
-                yield_minus1sigma_plus2sigma+=nominalSignal.GetBinContent(i)
-                
-            #if (nominalSignal.GetBinLowEdge(i)>= 1000 and nominalSignal.GetBinLowEdge(i)<=2500):
-            if (nominalSignal.GetBinLowEdge(i)>= mean-stddev and nominalSignal.GetBinLowEdge(i)<=mean+2*stddev and nominalSignal.GetBinLowEdge(i)>=300):
-            #if (nominalSignal.GetBinLowEdge(i)>= mean-2*stddev and nominalSignal.GetBinLowEdge(i)<=mean+2*stddev):
-            #if(i>=nominalSignal.FindBin(mean-2*stddev) and i>=nominalSignal.FindBin(300)):
-            
-                signal_yield+=nominalSignal.GetBinContent(i)
-                signal_pu_up+=ifile.Get(massPlotsSignal['PU_up']).GetBinContent(i)
-                signal_pu_down+=ifile.Get(massPlotsSignal['PU_down']).GetBinContent(i)
-                signal_Fpix_up+=ifile.Get(massPlotsSignal['Fpix_up']).GetBinContent(i)
-                signal_Fpix_down+=ifile.Get(massPlotsSignal['Fpix_down']).GetBinContent(i)
-                signal_Gstrip_up+=ifile.Get(massPlotsSignal['Gstrip_up']).GetBinContent(i)
-                signal_Gstrip_down+=ifile.Get(massPlotsSignal['Gstrip_down']).GetBinContent(i)
-                signal_Pt_up+=ifile.Get(massPlotsSignal['Pt_up']).GetBinContent(i)
-                signal_Pt_down+=ifile.Get(massPlotsSignal['Pt_down']).GetBinContent(i)
-                signal_Trigger_up+=ifile.Get(massPlotsSignal['Trigger_up']).GetBinContent(i)
-                signal_Trigger_down+=ifile.Get(massPlotsSignal['Trigger_down']).GetBinContent(i)
-                signal_K_up+=ifile.Get(massPlotsSignal['K_up']).GetBinContent(i)
-                signal_K_down+=ifile.Get(massPlotsSignal['K_down']).GetBinContent(i)
-                signal_C_up+=ifile.Get(massPlotsSignal['C_up']).GetBinContent(i)
-                signal_C_down+=ifile.Get(massPlotsSignal['C_down']).GetBinContent(i)
-        for i in range(0,mass_plot['predNominal'].GetNbinsX()+1):
-            #print mass_plot['predNominal'].GetBinLowEdge(i), mean-stddev, mean+2*stddev
-            if (mass_plot['predNominal'].GetBinLowEdge(i)>= mean-stddev and mass_plot['predNominal'].GetBinLowEdge(i)<=mean+2*stddev):
-            #if(i>=mass_plot['predNominal'].FindBin(mean) and i<=mass_plot['predNominal'].FindBin(mean+2*stddev) and i>=mass_plot['predNominal'].FindBin(300)):
-                bkg_nominal+=mass_plot['predNominal'].GetBinContent(i)
-                bkg_up+=mass_plot['predUp'].GetBinContent(i)
-                bkg_down+=mass_plot['predDown'].GetBinContent(i)
-                #print bkg_nominal
-        
-        for i in range(0,mass_plot['pred_2017_nominal'].GetNbinsX()+1):
-            #if(i>=mass_plot['pred_2017_nominal'].FindBin(1000) and i<=mass_plot['pred_2017_nominal'].FindBin(2500)):
-            #print 'bin' , i, mean-stddev, mass_plot['pred_2017_nominal'].FindBin(mean-stddev), mass_plot['pred_2017_nominal'].FindBin(300), mass_plot['pred_2017_nominal'].GetBinLowEdge(i)
-            #if(i>=mass_plot['obs_2017'].FindBin(300)):
-            #    print mass_plot['obs_2017'].GetBinContent(i)
-            if(i>=mass_plot['pred_2017_nominal'].FindBin(mean-stddev) and i<=mass_plot['pred_2017_nominal'].FindBin(mean+2*stddev) and i>=mass_plot['pred_2017_nominal'].FindBin(300)):
-            #if(i>=mass_plot['pred_2017_nominal'].FindBin(mean-2*stddev) and i>=mass_plot['pred_2017_nominal'].FindBin(300)):
-                #obs_2017+=mass_plot['obs_2017'].GetBinContent(i)
-                print mass_plot['obs_2017'].GetBinContent(i), i, mass_plot['obs_2017'].GetBinLowEdge(i)
-                bkg_2017_nominal+=mass_plot['pred_2017_nominal'].GetBinContent(i)
-                bkg_2017_stat+=mass_plot['pred_2017_stat'].GetBinContent(i)
-                bkg_2017_etaBinning_up+=mass_plot['pred_2017_etaup'].GetBinContent(i)
-                bkg_2017_etaBinning_down+=mass_plot['pred_2017_etadown'].GetBinContent(i)
-                bkg_2017_ihBinning_up+=mass_plot['pred_2017_ihup'].GetBinContent(i)
-                bkg_2017_ihBinning_down+=mass_plot['pred_2017_ihdown'].GetBinContent(i)
-                bkg_2017_momBinning_up+=mass_plot['pred_2017_momup'].GetBinContent(i)
-                bkg_2017_momBinning_down+=mass_plot['pred_2017_momdown'].GetBinContent(i)
-                bkg_2017_corrTemplateIh_up+=mass_plot['pred_2017_corrih'].GetBinContent(i)
-                bkg_2017_corrTemplateIh_down+=mass_plot['pred_2017_corrih'].GetBinContent(i)
-                bkg_2017_corrTemplateMom_up+=mass_plot['pred_2017_corrmom'].GetBinContent(i)
-                bkg_2017_corrTemplateMom_down+=mass_plot['pred_2017_corrmom'].GetBinContent(i)
-                #bkg_2017_fitIh_up+=mass_plot['pred_2017_fitihup'].GetBinContent(i)
-                #bkg_2017_fitIh_down+=mass_plot['pred_2017_fitihdown'].GetBinContent(i)
-                #bkg_2017_fitMom_up+=mass_plot['pred_2017_fitmomup'].GetBinContent(i)
-                #bkg_2017_fitMom_down+=mass_plot['pred_2017_fitmomdown'].GetBinContent(i)
-                bkg_2017_correctionBias+=mass_plot['pred_2017_corrbias'].GetBinContent(i)
-                #print i,mass_plot['pred_2017_corrbias'].GetBinLowEdge(i),mass_plot['pred_2017_corrbias'].GetBinContent(i), mass_plot['pred_2017_nominal'].GetBinContent(i)*(0.000954989*mass_plot['pred_2017_nominal'].GetBinCenter(i)+0.962746),mass_plot['pred_2017_nominal'].GetBinContent(i),mass_plot['pred_2017_corrbias'].GetBinContent(i)/mass_plot['pred_2017_nominal'].GetBinContent(i)
-                #print 'eta binning', bkg_2017_etaBinning_up, bkg_2017_etaBinning_down, bkg_2017_nominal, bkg_2017_etaBinning_up/bkg_2017_nominal, bkg_2017_etaBinning_down/bkg_2017_nominal
-        for i in range(0,mass_plot['pred_2018_nominal'].GetNbinsX()+1):
-            #if(i>=mass_plot['pred_2018_nominal'].FindBin(1000) and i<=mass_plot['pred_2018_nominal'].FindBin(2500)):
-            if(i>=mass_plot['pred_2018_nominal'].FindBin(mean-stddev) and i<=mass_plot['pred_2018_nominal'].FindBin(mean+2*stddev) and i>=mass_plot['pred_2018_nominal'].FindBin(300)):
-            #if(i>=mass_plot['pred_2018_nominal'].FindBin(mean-2*stddev) and i>=mass_plot['pred_2018_nominal'].FindBin(300)):
-                
-                #obs_2018+=mass_plot['obs_2018'].GetBinContent(i)
-                bkg_2018_nominal+=mass_plot['pred_2018_nominal'].GetBinContent(i)
-                bkg_2018_stat+=mass_plot['pred_2018_stat'].GetBinContent(i)
-                bkg_2018_etaBinning_up+=mass_plot['pred_2018_etaup'].GetBinContent(i)
-                bkg_2018_etaBinning_down+=mass_plot['pred_2018_etadown'].GetBinContent(i)
-                bkg_2018_ihBinning_up+=mass_plot['pred_2018_ihup'].GetBinContent(i)
-                bkg_2018_ihBinning_down+=mass_plot['pred_2018_ihdown'].GetBinContent(i)
-                bkg_2018_momBinning_up+=mass_plot['pred_2018_momup'].GetBinContent(i)
-                bkg_2018_momBinning_down+=mass_plot['pred_2018_momdown'].GetBinContent(i)
-                bkg_2018_corrTemplateIh_up+=mass_plot['pred_2018_corrih'].GetBinContent(i)
-                bkg_2018_corrTemplateIh_down+=mass_plot['pred_2018_corrih'].GetBinContent(i)
-                bkg_2018_corrTemplateMom_up+=mass_plot['pred_2018_corrmom'].GetBinContent(i)
-                bkg_2018_corrTemplateMom_down+=mass_plot['pred_2018_corrmom'].GetBinContent(i)
-                #bkg_2018_fitIh_up+=mass_plot['pred_2018_fitihup'].GetBinContent(i)
-                #bkg_2018_fitIh_down+=mass_plot['pred_2018_fitihdown'].GetBinContent(i)
-                #bkg_2018_fitMom_up+=mass_plot['pred_2018_fitmomup'].GetBinContent(i)
-                #bkg_2018_fitMom_down+=mass_plot['pred_2018_fitmomdown'].GetBinContent(i)
-                bkg_2018_correctionBias+=mass_plot['pred_2018_corrbias'].GetBinContent(i)
-        '''
-        #print '2017', mass_plot['pred_2017_fitmomdown'].Integral(), mass_plot['pred_2017_fitmomup'].Integral(),mass_plot['pred_2017_nominal'].Integral()
-        #print '2018', mass_plot['pred_2018_fitmomdown'].Integral(), mass_plot['pred_2018_fitmomup'].Integral(),mass_plot['pred_2018_nominal'].Integral()
-        
-        #print yield_total/yield_total, yield_minus2sigma_minus1sigma/yield_total, yield_minus1sigma_mu/yield_total, yield_mu_plus1sigma/yield_total, yield_plus1sigma_plus2sigma/yield_total, yield_minus1sigma_plus2sigma/yield_total
-        
-        #obs_2017 = mass_plot['obs_2017'].Integral(mass_plot['obs_2017'].FindBin(mean-stddev),mass_plot['obs_2017'].FindBin(mean+2*stddev))
-        #obs_2018 = mass_plot['obs_2018'].Integral(mass_plot['obs_2018'].FindBin(mean-stddev),mass_plot['obs_2018'].FindBin(mean+2*stddev))
-
-        #if(mean-stddev<300):
-        #    obs_2017 = mass_plot['obs_2017'].Integral(mass_plot['obs_2017'].FindBin(300),mass_plot['obs_2017'].FindBin(mean+2*stddev))
-        #    obs_2018 = mass_plot['obs_2018'].Integral(mass_plot['obs_2018'].FindBin(300),mass_plot['obs_2018'].FindBin(mean+2*stddev))
-
         if(signal_yield!=0):
             signal_pu_up/=signal_yield
             signal_pu_down/=signal_yield
@@ -897,7 +700,6 @@ if __name__ == '__main__':
             yC.append(pushSyst(signal_C_up,signal_C_down))
 
             yTotal.append(np.sqrt(pow(pushSyst(signal_pu_up,signal_pu_down),2)+pow(pushSyst(signal_Fpix_up,signal_Fpix_down),2)+pow(pushSyst(signal_Gstrip_up,signal_Gstrip_down),2)+pow(pushSyst(signal_Pt_up,signal_Pt_down),2)+pow(pushSyst(signal_Trigger_up,signal_Trigger_down),2)+pow(pushSyst(signal_K_up,signal_K_down),2)+pow(pushSyst(signal_C_up,signal_C_down),2)))
-
 
         if(bkg_2017_nominal!=0):
             bkg_2017_stat/=bkg_2017_nominal
@@ -944,8 +746,6 @@ if __name__ == '__main__':
             bkg_2018_fitMom_down=1
             bkg_2018_correctionBias/=bkg_2018_nominal
 
-        #print bkg_2018_fitMom_up,bkg_2018_fitMom_down
-
         sig_2017_unc = {
             'sig2017_Fpix': [signal_Fpix_down, signal_Fpix_up],
             'sig2017_Gstrip': [signal_Gstrip_down, signal_Gstrip_up],
@@ -962,31 +762,10 @@ if __name__ == '__main__':
             'sig2018_C': [signal_C_down, signal_C_up],
         }
 
-        #sig_2017_unc = {
-        #    'sig2017_Fpix': [1],
-        #    'sig2017_Gstrip': [1],
-        #    'sig2017_Pt': [1],
-        #    'sig2017_K': [1],
-        #    'sig2017_C': [1],
-        #}
-#
-        #sig_2018_unc = {
-        #    'sig2018_Fpix': [1],
-        #    'sig2018_Gstrip': [1],
-        #    'sig2018_Pt': [1],
-        #    'sig2018_K': [1],
-        #    'sig2018_C': [1],
-        #}
-
         sig_unc_correlated = {
             'sig_pu' : [signal_pu_down, signal_pu_up, signal_pu_down, signal_pu_up],
             'sig_Trigger' : [signal_Trigger_down, signal_Trigger_up, signal_Trigger_down, signal_Trigger_up],
         }
-
-        #sig_unc_correlated = {
-        #    'sig_pu' : [1,1,1,1],
-        #    'sig_Trigger' : [1,1,1,1],
-        #}
 
         tot_unc_sig_2017 = { 
             'sig2017_Fpix': [signal_Fpix_down, signal_Fpix_up],
@@ -1020,18 +799,6 @@ if __name__ == '__main__':
             'bkg2018_fitMom': [bkg_2018_fitMom_down, bkg_2018_fitMom_up],
         }
 
-        #bkg_2017_unc = {
-        #    'bkg2017_stat': [1.4],
-        #    'bkg2017_fitIh': [1],
-        #    'bkg2017_fitMom': [1],
-        #}
-#
-        #bkg_2018_unc = {
-        #    'bkg2018_stat': [1.4],
-        #    'bkg2018_fitIh': [1],
-        #    'bkg2018_fitMom': [1],
-        #}
-
         bkg_unc_correlated = {
             'bkg_etaBinning' : [bkg_2017_etaBinning_down, bkg_2017_etaBinning_up, bkg_2018_etaBinning_down, bkg_2018_etaBinning_up],
             'bkg_ihBinning' : [bkg_2017_ihBinning_down, bkg_2017_ihBinning_up, bkg_2018_ihBinning_down, bkg_2018_ihBinning_up],
@@ -1040,15 +807,6 @@ if __name__ == '__main__':
             'bkg_correctionTemplateMomentum' : [bkg_2017_corrTemplateMom_up, bkg_2018_corrTemplateMom_up],
             'bkg_correctionBias' : [bkg_2017_correctionBias, bkg_2018_correctionBias],
         }
-        
-        #bkg_unc_correlated = {
-        #    'bkg_etaBinning' : [1,1,1,1],
-        #    'bkg_ihBinning' : [1,1,1,1],
-        #    'bkg_momentumBinning' : [1,1,1,1],
-        #    'bkg_correctionTemplateIh' : [1,1],
-        #    'bkg_correctionTemplateMomentum' : [1,1],
-        #    'bkg_correctionBias' : [1,1],
-        #}
 
         tot_unc_bkg_2017 = {
             'bkg2017_stat': [bkg_2017_stat],
@@ -1079,29 +837,18 @@ if __name__ == '__main__':
         bckg_down=totalUncertainy(tot_unc_bkg_2018,0)
         signal_up=totalUncertainy(tot_unc_sig_2018,1)
         signal_down=totalUncertainy(tot_unc_sig_2018,0)
-        #print bkg, bkg*bckg_down, bkg*bckg_up, signal_yield, signal_up, signal_down
-
-        #signal_yield*= integralF
-
 
         signal_yield_norm=signal_yield*41.5/101
         signal_yield_norm=signal_yield*59.7/101
-        #bckg_up*=bkg
-        #bckg_down*=bkg
-        #signal_up*=signal_yield_norm
-        #signal_down*=signal_yield_norm
 
-
-
-        make_datacard_hscp_combining2017and2018(outDataCardsDir,  signal, signal_yield*41.5/101, signal_yield*59.7/101, bkg_2017_nominal, bkg_2018_nominal, obs_2017, obs_2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated)
-        #make_datacard_hscp_combining2017and2018(outDataCardsDir,  signal, signal_yield*41.5/101, signal_yield*59.7/101, bkg_2017_nominal, bkg_2018_nominal, bkg_2017_nominal, bkg_2018_nominal, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated)
+        make_datacard_hscp_combining2017and2018(outDataCardsDir,  signal, signal_yield*41.5/101., signal_yield*59.7/101., bkg_2017_nominal, bkg_2018_nominal, obs_2017, obs_2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated)
         
         bkg=bkg_2017_nominal
         bckg_up=totalUncertainy(tot_unc_bkg_2017,1)
         bckg_down=totalUncertainy(tot_unc_bkg_2017,0)
         signal_up=totalUncertainy(tot_unc_sig_2017,1)
         signal_down=totalUncertainy(tot_unc_sig_2017,0)
-        signal_yield_norm=signal_yield*41.5/101
+        signal_yield_norm=signal_yield*41.5/101.
         
         makeYieldFile(text_file_tex,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
         
@@ -1110,7 +857,7 @@ if __name__ == '__main__':
         bckg_down=totalUncertainy(tot_unc_bkg_2018,0)
         signal_up=totalUncertainy(tot_unc_sig_2018,1)
         signal_down=totalUncertainy(tot_unc_sig_2018,0)
-        signal_yield_norm=signal_yield*59.7/101
+        signal_yield_norm=signal_yield*59.7/101.
         
         makeYieldFile(text_file_tex_2018,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
 
@@ -1143,9 +890,7 @@ if __name__ == '__main__':
     iPos = 0
     CMS_lumi.extraText = "Internal"
     CMS_lumi.writeExtraText=True
-
     if( iPos==0 ): CMS_lumi.relPosX = 0.12
-    # CMS_lumi.CMS_lumi(c, 4, 0)
     CMS_lumi.lumi_13TeV  = "101 fb^{-1}"
     
         
@@ -1157,8 +902,9 @@ if __name__ == '__main__':
     h2.GetXaxis().SetTitleOffset(1.5)
     h2.GetYaxis().SetTitleOffset(2)
     CMS_lumi.CMS_lumi(c1, 4, iPos)
-    c1.SaveAs("mass_window_Aug29/h2_massWindow"+regionSignal+".root")
-    c1.SaveAs("mass_window_Aug29/h2_massWindow"+regionSignal+".pdf")
+    os.system('mkdir -p mass_window_dir')
+    c1.SaveAs("mass_window_dir/h2_massWindow"+regionSignal+".root")
+    c1.SaveAs("mass_window_dir/h2_massWindow"+regionSignal+".pdf")
 
     setColorAndMarkerGr(grK,30,21)
     setColorAndMarkerGr(grC,38,22)
@@ -1200,5 +946,6 @@ if __name__ == '__main__':
     grTotal.Draw("P")
     leg2.Draw("same")
     CMS_lumi.CMS_lumi(c2, 4, iPos)
-    c2.SaveAs("systTargetMass_Aug22/systTargetMass_"+systSignal+"_"+regionSignal+".root")
-    c2.SaveAs("systTargetMass_Aug22/systTargetMass_"+systSignal+"_"+regionSignal+".pdf")
+    os.system('mkdir -p systTargetMass_dir')
+    c2.SaveAs("systTargetMass_dir/systTargetMass_"+systSignal+"_"+regionSignal+".root")
+    c2.SaveAs("systTargetMass_dir/systTargetMass_"+systSignal+"_"+regionSignal+".pdf")
