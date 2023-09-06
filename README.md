@@ -58,6 +58,11 @@ git clone git@github.com:dapparu/LimitComputation_MassSpectrum.git LimitComputat
 cd LimitComputation_MassSpectrum
 ```
 
+## Import the cross-sections
+
+The cross-section are already loaded in the directory ```xsec```. 
+More information on: https://github.com/fuenfundachtzig/xsec
+
 ## Create the datacards
 
 This part aims to create the datacards for each signal hypotheses. 
