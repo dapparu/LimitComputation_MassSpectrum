@@ -42,9 +42,9 @@ HSCPgluinoOnlyNeutral_M-2200_TuneCP5_13TeV-pythia8            0.000356
 HSCPgluinoOnlyNeutral_M-2400_TuneCP5_13TeV-pythia8            0.000128
 HSCPgluinoOnlyNeutral_M-2600_TuneCP5_13TeV-pythia8            4.62e-05
 
-HSCPgluino_M-200_TuneCP5_13TeV-pythia8                        3574.52
-HSCPgluino_M-400_TuneCP5_13TeV-pythia8                        98.0459
-HSCPgluino_M-500_TuneCP5_13TeV-pythia8                        33.8
+#HSCPgluino_M-200_TuneCP5_13TeV-pythia8                        3574.52
+#HSCPgluino_M-400_TuneCP5_13TeV-pythia8                        98.0459
+#HSCPgluino_M-500_TuneCP5_13TeV-pythia8                        33.8
 HSCPgluino_M-800_TuneCP5_13TeV-pythia8                        1.81
 HSCPgluino_M-1000_TuneCP5_13TeV-pythia8                       0.385
 HSCPgluino_M-1400_TuneCP5_13TeV-pythia8                       0.0284
@@ -111,26 +111,26 @@ HSCPstop_M-2200_TuneCP5_13TeV-pythia8                      5e-06
 HSCPstop_M-2400_TuneCP5_13TeV-pythia8                      1.71e-06
 HSCPstop_M-2600_TuneCP5_13TeV-pythia8                      5.9e-07
 HSCPstop_M-400_TuneCP5_13TeV-pythia8                      2.15
-HSCPstop_M-500_TuneCP5_13TeV-pythia8                      0.609
+#HSCPstop_M-500_TuneCP5_13TeV-pythia8                      0.609
 HSCPstop_M-800_TuneCP5_13TeV-pythia8                      0.0326
 
 
-#### normalized to 1pb for now
+#### updated by Dylan ; 20sept 
 
-HSCPtauPrimeCharge1e_M-1000_TuneCP5_13TeV-pythia8                      7.6e-05
-HSCPtauPrimeCharge1e_M-1400_TuneCP5_13TeV-pythia8                      8.5e-06
-HSCPtauPrimeCharge1e_M-1800_TuneCP5_13TeV-pythia8                      1.2e-06
-HSCPtauPrimeCharge1e_M-2200_TuneCP5_13TeV-pythia8                      8.2e-07
-HSCPtauPrimeCharge1e_M-2600_TuneCP5_13TeV-pythia8                     1.2e-07
-HSCPtauPrimeCharge1e_M-500_TuneCP5_13TeV-pythia8                      1.2e-03
-HSCPtauPrimeCharge1e_M-800_TuneCP5_13TeV-pythia8                      2.6e-04
+HSCPtauPrimeCharge1e_M-1000_TuneCP5_13TeV-pythia8                      1.638e-04
+HSCPtauPrimeCharge1e_M-1400_TuneCP5_13TeV-pythia8                      1.869e-05
+HSCPtauPrimeCharge1e_M-1800_TuneCP5_13TeV-pythia8                      2.641e-06
+HSCPtauPrimeCharge1e_M-2200_TuneCP5_13TeV-pythia8                      4.175e-07
+HSCPtauPrimeCharge1e_M-2600_TuneCP5_13TeV-pythia8                     7.282e-08
+HSCPtauPrimeCharge1e_M-500_TuneCP5_13TeV-pythia8                      6.0e-03
+HSCPtauPrimeCharge1e_M-800_TuneCP5_13TeV-pythia8                      5.697e-04
 
-HSCPtauPrimeCharge2e_M-1000_TuneCP5_13TeV-pythia8                      2.4e-04
-HSCPtauPrimeCharge2e_M-1400_TuneCP5_13TeV-pythia8                      2.7e-05
-HSCPtauPrimeCharge2e_M-1800_TuneCP5_13TeV-pythia8                      3.9e-06
-HSCPtauPrimeCharge2e_M-2200_TuneCP5_13TeV-pythia8                      8.2e-07
-HSCPtauPrimeCharge2e_M-2600_TuneCP5_13TeV-pythia8                      1.2e-07
-HSCPtauPrimeCharge2e_M-500_TuneCP5_13TeV-pythia8                      3.5e-03
+HSCPtauPrimeCharge2e_M-1000_TuneCP5_13TeV-pythia8                      6.553e-04
+HSCPtauPrimeCharge2e_M-1400_TuneCP5_13TeV-pythia8                      7.477e-05
+HSCPtauPrimeCharge2e_M-1800_TuneCP5_13TeV-pythia8                      1.056e-05
+HSCPtauPrimeCharge2e_M-2200_TuneCP5_13TeV-pythia8                      1.670e-06
+HSCPtauPrimeCharge2e_M-2600_TuneCP5_13TeV-pythia8                      2.913e-07
+HSCPtauPrimeCharge2e_M-500_TuneCP5_13TeV-pythia8                      2.5e-02
 
 #2017 samples, xsec taken from AN-18-008
 ZToMuMu_NNPDF31_13TeV-powheg_M_50_120                           2112.9

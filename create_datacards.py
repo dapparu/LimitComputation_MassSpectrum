@@ -8,6 +8,7 @@ sys.argv.append(' -b- ')
 
 from collections import OrderedDict
 import numpy as np
+import array
 
 from histo_utilities import std_color_list, create_TGraph, find_intersect
 
@@ -83,13 +84,13 @@ def make_datacard_hscp_combining2017and2018(outDataCardsDir,  modelName, signal2
             vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
             text_file.write('{} \t lnN \t -  \t {} \t - \t - \n'.format(k, vPrime))
         else:text_file.write('{} \t lnN \t -  \t {} \t - \t - \n'.format(k, v[0]))
-
+    
     for k,v in bkg_2018_unc.items():
         if len(v)==2:
             vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
             text_file.write('{} \t lnN \t - \t - \t - \t {} \n'.format(k, vPrime))
         else:text_file.write('{} \t lnN \t - \t - \t - \t {} \n'.format(k, v[0]))
-
+    
     for k,v in bkg_unc_correlated.items():
         if len(v)==4:
             vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
@@ -114,6 +115,63 @@ def make_datacard_hscp_combining2017and2018(outDataCardsDir,  modelName, signal2
 
     text_file.close()
 
+def make_datacard_hscp_combining2017and2018_massShape(outDataCardsDir,  modelName, signal2017, signal2018, bkg2017, bkg2018, observation2017, observation2018, sig_2017_unc, sig_2018_unc, sig_unc_correlated, bkg_2017_unc, bkg_2018_unc, bkg_unc_correlated):
+
+    text_file = open(outDataCardsDir+modelName+".txt", "w")
+
+    text_file.write('imax {0} \n'.format(2))
+    text_file.write('jmax {0} \n'.format(1))
+    text_file.write('kmax * \n')
+    text_file.write('shapes * * $PROCESS_$CHANNEL $PROCESS_$CHANNEL_$SYSTEMATIC \n')
+    text_file.write('--------------- \n')
+    text_file.write('--------------- \n')
+    text_file.write('bin \t  Ch2017 \t Ch2018 \n')
+    text_file.write('observation \t {} \t {} \n'.format(observation2017,observation2018))
+    text_file.write('------------------------------ \n')
+    text_file.write('bin \t Ch2017 \t Ch2017 \t Ch2018 \t Ch2018 \n')
+    text_file.write('process \t signal \t bkg \t signal \t bkg \n')
+    text_file.write('process \t 0 \t 1 \t 0 \t 1 \t \n')
+    text_file.write('rate \t {} \t {} \t {} \t {} \n'.format(signal2017, bkg2017, signal2018, bkg2018))
+    text_file.write('------------------------------ \n')
+
+    #### uncertainties ####
+    for k,v in sig_2017_unc.items():
+        if len(v)==2:
+            text_file.write('{} \t lnN \t {}/{} \t - \t - \t - \n'.format(k, v[0],v[1]))
+        else:text_file.write('{} \t lnN \t {} \t - \t - \t - \n'.format(k, v[0]))
+
+    for k,v in sig_2018_unc.items():
+        if len(v)==2:
+            text_file.write('{} \t lnN \t - \t - \t {}/{} \t - \n'.format(k, v[0],v[1]))
+        else:text_file.write('{} \t lnN \t - \t - \t {} \t - \n'.format(k, v[0]))
+
+    for k,v in sig_unc_correlated.items():
+        if len(v)==4:
+            text_file.write('{} \t lnN \t {}/{} \t - \t {}/{} \t - \n'.format(k, v[0],v[1], v[2],v[3]))
+        else:text_file.write('{} \t lnN \t {} \t - \t {} \t - \n'.format(k, v[0], v[1]))
+
+    for k,v in bkg_2017_unc.items():
+        if len(v)==2:
+            vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
+            text_file.write('{} \t lnN \t -  \t {} \t - \t - \n'.format(k, vPrime))
+        else:text_file.write('{} \t lnN \t -  \t {} \t - \t - \n'.format(k, v[0]))
+
+    for k,v in bkg_2018_unc.items():
+        if len(v)==2:
+            vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
+            text_file.write('{} \t lnN \t - \t - \t - \t {} \n'.format(k, vPrime))
+        else:text_file.write('{} \t lnN \t - \t - \t - \t {} \n'.format(k, v[0]))
+
+    for k,v in bkg_unc_correlated.items():
+        if len(v)==4:
+            vPrime=max(abs(1-v[0]),abs(1-v[1]))+1
+            vSecond=max(abs(1-v[2]),abs(1-v[3]))+1
+            text_file.write('{} \t lnN \t - \t {} \t - \t {} \n'.format(k, vPrime, vSecond))
+        else:text_file.write('{} \t lnN \t - \t {} \t - \t {} \n'.format(k, v[0], v[1]))
+
+
+    text_file.close()
+
 def totalUncertainy(unc,i=1):
     total=0
     for k,v in unc.items():
@@ -122,9 +180,9 @@ def totalUncertainy(unc,i=1):
         else:total+=pow(1-v[0],2)
     return np.sqrt(total)
 
-def makeYieldFile(text_file_tex,modelName,bkg,bckg_up,bckg_down,signal,signal_up,signal_down):
+def makeYieldFile(text_file_tex,modelName,bkg,bckg_up,bckg_down,obs,signal,signal_up,signal_down):
     typeOfDisplay='.2E'
-    text_file_tex.write('\n '+modelName+' & $'+str(format(bkg,typeOfDisplay))+'^{+'+str(format(bkg*bckg_up,typeOfDisplay))+'}_{-'+str(format(bkg*bckg_down,typeOfDisplay))+'}$ & $'+str(format(signal,typeOfDisplay))+'^{+'+str(format(signal*signal_up,typeOfDisplay))+'}_{-'+str(format(signal*signal_down,typeOfDisplay))+'}$ \\\\')
+    text_file_tex.write('\n '+modelName+' & $'+str(format(bkg,typeOfDisplay))+'^{+'+str(format(bkg*bckg_up,typeOfDisplay))+'}_{-'+str(format(bkg*bckg_down,typeOfDisplay))+'}$ & '+str(format(obs,typeOfDisplay))+' & $'+str(format(signal,typeOfDisplay))+'^{+'+str(format(signal*signal_up,typeOfDisplay))+'}_{-'+str(format(signal*signal_down,typeOfDisplay))+'}$ \\\\')
     text_file_tex.write('\n \hline')  
     
 def fillH2(h2,targetMass,mean,stddev,s):
@@ -153,6 +211,43 @@ def pushSyst(syst1,syst2):
 def integralHisto(h,xmin,xmax):
     return h.Integral(h.FindBin(xmin),h.FindBin(xmax))
 
+def saveSignalShape(outfile, h_signal, label):
+    label = label.find("_")[0]
+    print label
+    h_2017 = h_signal.Clone("signal_Ch2017_"+label)
+    h_2018 = h_signal.Clone("signal_Ch2018_"+label)
+    if(label=="Nominal"): 
+        h_2017 = h_signal.Clone("signal_Ch2017")
+        h_2018 = h_signal.Clone("signal_Ch2018")
+    h_2017.Scale(41.5/101.)
+    h_2018.Scale(59.7/101.)
+    outfile.cd()
+    h_2017.Write()
+    h_2018.Write()
+
+def saveSigShape(outfile, h_signal, label):
+    rebinning=array.array('d',[0.,20.,40.,60.,80.,100.,120.,140.,160.,180.,200.,220.,240.,260.,280.,300.,320.,340.,360.,380.,405.,435.,475.,525.,585.,660.,755.,875.,1025.,1210.,1440.,1730.,2000.,2500.,3200.,4000.])
+    h_2017 = h_signal.Clone("signal_Ch2017_"+label)
+    h_2018 = h_signal.Clone("signal_Ch2018_"+label)
+    if(label=="Nominal"): 
+        h_2017 = h_signal.Clone("signal_Ch2017")
+        h_2018 = h_signal.Clone("signal_Ch2018")
+    h_2017.Scale(41.5/101.)
+    h_2018.Scale(59.7/101.)
+    h_2017=h_2017.Rebin(len(rebinning)-1,"",rebinning)
+    h_2018=h_2018.Rebin(len(rebinning)-1,"",rebinning)
+    outfile.cd()
+    h_2017.Write()
+    h_2018.Write()
+
+def savePredShape(outfile, h_pred, label):
+    rebinning=array.array('d',[0.,20.,40.,60.,80.,100.,120.,140.,160.,180.,200.,220.,240.,260.,280.,300.,320.,340.,360.,380.,405.,435.,475.,525.,585.,660.,755.,875.,1025.,1210.,1440.,1730.,2000.,2500.,3200.,4000.])
+    h_pred_cl = h_pred.Clone(label)
+    h_pred_cl = h_pred_cl.Rebin(len(rebinning)-1,"",rebinning)
+    outfile.cd()
+    h_pred_cl.Write()
+
+
 if __name__ == '__main__':
 
     # load mass distributions
@@ -164,7 +259,7 @@ if __name__ == '__main__':
 
     regionSignal='SR3'
     regionBckg=''
-    systSignal="Stau"
+    systSignal="Gluino"
     searchRegion=regionSignal
     
     if(regionSignal=='SR1'):
@@ -180,9 +275,9 @@ if __name__ == '__main__':
     text_file_tex_2017.write('\n \\documentclass{article}')
     text_file_tex_2017.write('\n \\begin{document}')
     text_file_tex_2017.write('\n \\begin{center}')
-    text_file_tex_2017.write('\n \\begin{tabular}{ |l|c|c| } ')
+    text_file_tex_2017.write('\n \\begin{tabular}{ |l|c|c|c| } ')
     text_file_tex_2017.write('\n \hline')
-    text_file_tex_2017.write('\n Yield '+regionSignal+' & Pred. & Signal \\\\')
+    text_file_tex_2017.write('\n Yield '+regionSignal+' & Pred. & Obs. & Signal \\\\')
     text_file_tex_2017.write('\n \hline')
     text_file_tex_2017.write('\n \hline')
 
@@ -190,9 +285,9 @@ if __name__ == '__main__':
     text_file_tex_2018.write('\n \\documentclass{article}')
     text_file_tex_2018.write('\n \\begin{document}')
     text_file_tex_2018.write('\n \\begin{center}')
-    text_file_tex_2018.write('\n \\begin{tabular}{ |l|c|c| } ')
+    text_file_tex_2018.write('\n \\begin{tabular}{ |l|c|c|c| } ')
     text_file_tex_2018.write('\n \hline')
-    text_file_tex_2018.write('\n Yield '+regionSignal+' & Pred. & Signal \\\\')
+    text_file_tex_2018.write('\n Yield '+regionSignal+' & Pred. & Obs. & Signal \\\\')
     text_file_tex_2018.write('\n \hline')
     text_file_tex_2018.write('\n \hline')
 
@@ -205,48 +300,95 @@ if __name__ == '__main__':
 
     ofileBase = rt.TFile("base.root","RECREATE")
 
-    fpath['Gluino500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-500_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-800_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1000_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1400_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino1600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1600_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1800_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino2000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2000_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2200_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino2400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2400_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Gluino2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2600_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-800_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1000_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop1200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1200_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1400_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop1600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1600_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1800_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop2000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2000_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2200_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop2400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2400_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['Stop2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2600_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau308_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-308_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau432_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-432_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau557_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-557_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau651_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-651_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau745_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-745_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau871_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-871_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['pairStau1029_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-1029_CodeV'+codeVersionSignal+'_v1.root'
-    fpath['DYcharge1e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-500_CodeV80p0_v1.root'
-    fpath['DYcharge1e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-800_CodeV80p0_v1.root'
-    fpath['DYcharge1e_1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1000_CodeV80p0_v1.root'
-    fpath['DYcharge1e_1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1400_CodeV80p0_v1.root'
-    fpath['DYcharge1e_1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1800_CodeV80p0_v1.root'
-    fpath['DYcharge1e_2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2200_CodeV80p0_v1.root'
-    fpath['DYcharge1e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2600_CodeV80p0_v1.root'
-    fpath['DYcharge2e_400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-400_CodeV80p0_v1.root'
-    fpath['DYcharge2e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-500_CodeV80p0_v1.root'
-    fpath['DYcharge2e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-800_CodeV80p0_v1.root'
-    fpath['DYcharge2e_1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1000_CodeV80p0_v1.root'
-    fpath['DYcharge2e_1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1400_CodeV80p0_v1.root'
-    fpath['DYcharge2e_1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1800_CodeV80p0_v1.root'
-    fpath['DYcharge2e_2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-2200_CodeV80p0_v1.root'
-    fpath['DYcharge2e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-2600_CodeV80p0_v1.root'
+    #fpath['Gluino500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-500_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-800_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1000_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1400_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino1600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1600_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-1800_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino2000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2000_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2200_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino2400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2400_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Gluino2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPgluino_M-2600_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-800_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1000_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop1200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1200_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1400_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop1600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1600_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-1800_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop2000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2000_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2200_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop2400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2400_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['Stop2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPstop_M-2600_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau308_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-308_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau432_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-432_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau557_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-557_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau651_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-651_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau745_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-745_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau871_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-871_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['pairStau1029_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPpairStau_M-1029_CodeV'+codeVersionSignal+'_v1.root'
+    #fpath['DYcharge1e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-500_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-800_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1000_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1400_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-1800_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2200_CodeV80p0_v1.root'
+    #fpath['DYcharge1e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge1e_M-2600_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-400_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_500_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-500_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-800_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_1000_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1000_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_1400_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1400_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_1800_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-1800_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_2200_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-2200_CodeV80p0_v1.root'
+    #fpath['DYcharge2e_2600_2018'] = pathSignal+'crab_Analysis_'+yearSignal+'_HSCPtauPrimeCharge2e_M-2600_CodeV80p0_v1.root'
+
+    fpath['Gluino500_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-500_merged.root'
+    fpath['Gluino800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-800_merged.root'
+    fpath['Gluino1000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-1000_merged.root'
+    fpath['Gluino1400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-1400_merged.root'
+    fpath['Gluino1600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-1600_merged.root'
+    fpath['Gluino1800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-1800_merged.root'
+    fpath['Gluino2000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-2000_merged.root'
+    fpath['Gluino2200_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-2200_merged.root'
+    fpath['Gluino2400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-2400_merged.root'
+    fpath['Gluino2600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPgluino/Merged_HSCPgluino/HSCPgluino_M-2600_merged.root'
+    fpath['Stop400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-400_merged.root'
+    fpath['Stop500_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-500_merged.root'
+    fpath['Stop800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-800_merged.root'
+    fpath['Stop1000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-1000_merged.root'
+    fpath['Stop1200_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-1200_merged.root'
+    fpath['Stop1400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-1400_merged.root'
+    fpath['Stop1600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-1600_merged.root'
+    fpath['Stop1800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-1800_merged.root'
+    fpath['Stop2000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-2000_merged.root'
+    fpath['Stop2200_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-2200_merged.root'
+    fpath['Stop2400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-2400_merged.root'
+    fpath['Stop2600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPstop/Merged_HSCPstop/HSCPstop_M-2600_merged.root'
+    fpath['pairStau308_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-308_merged.root'
+    fpath['pairStau432_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-432_merged.root'
+    fpath['pairStau557_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-557_merged.root'
+    fpath['pairStau651_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-651_merged.root'
+    fpath['pairStau745_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-745_merged.root'
+    fpath['pairStau871_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-871_merged.root'
+    fpath['pairStau1029_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPpairStau/Merged_HSCPpairStau/HSCPpairStau_M-1029_merged.root'
+    fpath['DYcharge1e_400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-400_merged.root'
+    fpath['DYcharge1e_500_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-500_merged.root'
+    fpath['DYcharge1e_800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-800_merged.root'
+    fpath['DYcharge1e_1000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-1000_merged.root'
+    fpath['DYcharge1e_1400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-1400_merged.root'
+    fpath['DYcharge1e_1800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-1800_merged.root'
+    fpath['DYcharge1e_2200_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-2200_merged.root'
+    fpath['DYcharge1e_2600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge1e/Merged_HSCPtauPrimeCharge1e/HSCPtauPrimeCharge1e_M-2600_merged.root'
+    fpath['DYcharge2e_400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-400_merged.root'
+    fpath['DYcharge2e_500_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-500_merged.root'
+    #fpath['DYcharge2e_800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-800_merged.root'
+    fpath['DYcharge2e_1000_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-1000_merged.root'
+    fpath['DYcharge2e_1400_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-1400_merged.root'
+    fpath['DYcharge2e_1800_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-1800_merged.root'
+    fpath['DYcharge2e_2200_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-2200_merged.root'
+    fpath['DYcharge2e_2600_2018'] = '/opt/sbg/cms/ui3_data1/dapparu/HSCP/Production/Unblinded_hists_dylan/HSCPtauPrimeCharge2e/Merged_HSCPtauPrimeCharge2e/HSCPtauPrimeCharge2e_M-2600_merged.root'
+
 
     idirSignal='HSCParticleAnalyzer/BaseName/'
     
@@ -281,6 +423,9 @@ if __name__ == '__main__':
     codeVersion='UnB_v1_v1'
     endLabel='_UnB_v3_Data_v2'
 
+    #codeVersion='73p3'
+    #endLabel='_19april_SR3'
+
     fpathPred['obs_2017'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
     fpathPred['pred_2017_nominal'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
     fpathPred['pred_2017_etaup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
@@ -314,6 +459,47 @@ if __name__ == '__main__':
     fpathPred['pred_2018_fitmomup'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
     fpathPred['pred_2018_fitmomup2'] = rt.TFile(pathPred+'crab_Analysis_SingleMuon_Run'+year+'_CodeV'+codeVersion+'_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
     
+    ###--------------
+    # Raph production UnB_V4
+
+    year='2017'
+    nPE='200'
+    endLabel='_UnB_v4_SR3'
+
+    fpathPred['obs_2017'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_nominal'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_etaup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_etadown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_ihup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_ihdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_momup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_momdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_corrih'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_corrmom'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitihup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitihdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitmomup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2017_fitmomdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
+
+    year='2018'
+
+    fpathPred['obs_2018'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_nominal'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_etaup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta2_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_etadown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta8_rebinIh4_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_ihup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh2_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_ihdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh8_rebinP2_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_momup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP1_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_momdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP4_rebinMass1_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_corrih'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateIh_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_corrmom'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_corrTemplateP_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitihup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitihdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitIhDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomdown'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPDown_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomup'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+    fpathPred['pred_2018_fitmomup2'] = rt.TFile(pathPred+'SingleMuon_'+year+'_Raph_cutIndex3_rebinEta4_rebinIh4_rebinP2_rebinMass1_fitPUp_nPE'+nPE+endLabel+'.root')
+
+
     #2017 bias corr parameters
     if(searchRegion=='SR1'):
         p1=0.00108083
@@ -325,8 +511,11 @@ if __name__ == '__main__':
         #p1=0.000954989
         #p0=0.962746
         ### UNBLINDING V1
-        p1=0.00131767
-        p0=0.939438
+        #p1=0.00131767
+        #p0=0.939438
+        ### UNBLINDING RAPH
+        p1=0.000771218
+        p0=0.979842
         
     mass_plot['obs_2017'] = fpathPred['obs_2017'].Get("mass_obs_"+regionBckg)
     mass_plot['pred_2017_nominal'] = fpathPred['pred_2017_nominal'].Get("mass_predBC_"+regionBckg)
@@ -371,8 +560,11 @@ if __name__ == '__main__':
         #p1=0.00121957
         #p0=0.963581
         ### UNBLINDING V1
-        p1=0.00169109
-        p0=0.901472
+        #p1=0.00169109
+        #p0=0.901472
+        ### UNBLINDING V4 RAPH
+        p1=0.00138625
+        p0=0.94072
 
     mass_plot['obs_2018'] = fpathPred['obs_2018'].Get("mass_obs_"+regionBckg)
     mass_plot['pred_2018_nominal'] = fpathPred['pred_2018_nominal'].Get("mass_predBC_"+regionBckg)
@@ -411,6 +603,7 @@ if __name__ == '__main__':
     ofileBase.cd()
     
     name = {
+       'Gluino500_2018': '$\\tilde{g}$ (M=500 GeV)',
        'Gluino800_2018': '$\\tilde{g}$ (M=800 GeV)',
        'Gluino1000_2018': '$\\tilde{g}$ (M=1000 GeV)',
        'Gluino1400_2018': '$\\tilde{g}$ (M=1400 GeV)',
@@ -420,6 +613,8 @@ if __name__ == '__main__':
         'Gluino2200_2018': '$\\tilde{g}$ (M=2200 GeV)',
         'Gluino2400_2018': '$\\tilde{g}$ (M=2400 GeV)',
         'Gluino2600_2018': '$\\tilde{g}$ (M=2600 GeV)',
+        'Stop400_2018': '$\\tilde{t}$ (M=400 GeV)',
+        'Stop500_2018': '$\\tilde{t}$ (M=500 GeV)',
         'Stop800_2018': '$\\tilde{t}$ (M=800 GeV)',
         'Stop1000_2018': '$\\tilde{t}$ (M=1000 GeV)',
         'Stop1200_2018': '$\\tilde{t}$ (M=1200 GeV)',
@@ -462,6 +657,7 @@ if __name__ == '__main__':
     }
 
     target={
+       'Gluino500_2018': 500,
        'Gluino800_2018': 800,
        'Gluino1000_2018': 1000,
        'Gluino1400_2018': 1400,
@@ -471,6 +667,8 @@ if __name__ == '__main__':
         'Gluino2200_2018': 2200,
         'Gluino2400_2018': 2400,
         'Gluino2600_2018': 2600,
+       'Stop400_2018': 400,
+       'Stop500_2018': 500,
        'Stop800_2018': 800,
        'Stop1000_2018': 1000,
        'Stop1200_2018': 1200,
@@ -516,7 +714,7 @@ if __name__ == '__main__':
         'DYcharge2e_2600_2018': 2600,
     }
     
-    outDataCardsDir = "datacards_"+searchRegion+"_test/"
+    outDataCardsDir = "datacards_"+searchRegion+"_test_UnB_v4_Raph_withGoodSignals/"
     os.system("mkdir -p {0}".format(outDataCardsDir))
 
     h2=rt.TH2F("h2",";Target Mass [GeV];Mass Window [GeV];[a.u.]",120,0,3000,400,0,4000)
@@ -530,6 +728,9 @@ if __name__ == '__main__':
     yK = []
     yC = []
     yTotal = []
+
+    outMassShape = "mass_shape_analysis_dir"
+    os.system("mkdir -p {0}".format(outMassShape))
 
     for signal in fpath.keys():
         
@@ -560,6 +761,8 @@ if __name__ == '__main__':
         
         obs_2017 = integralHisto(mass_plot['obs_2017'],xmin,xmax)
         obs_2018 = integralHisto(mass_plot['obs_2018'],xmin,xmax)
+
+        print 'obs2017: ',obs_2017, ' obs2018: ', obs_2018
 
         bkg_2017_nominal = integralHisto(mass_plot['pred_2017_nominal'],xmin,xmax)
         bkg_2017_stat = integralHisto(mass_plot['pred_2017_stat'],xmin,xmax)
@@ -613,6 +816,85 @@ if __name__ == '__main__':
         signal_C_up=integralHisto(ifile.Get(massPlotsSignal['C_up']),xmin,xmax)
         signal_C_down=integralHisto(ifile.Get(massPlotsSignal['C_down']),xmin,xmax)
 
+        ofileSignal_name = signal+".root"
+        ofileSignal = rt.TFile(ofileSignal_name,"RECREATE")
+
+        #for systOnSignal in massPlotsSignal.keys():
+            #saveSignalShape(ofileSignal, ifile.Get(massPlotsSignal[systOnSignal]), systOnSignal)
+        
+
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Nominal']), "Nominal")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['PU_up']), "PUUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['PU_down']), "PUDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Fpix_up']), "FpixUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Fpix_down']), "FpixDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Gstrip_up']), "GstripUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Gstrip_down']), "GstripDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Pt_up']), "PtUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Pt_down']), "PtDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Trigger_up']), "TriggerUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['Trigger_down']), "TriggerDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['K_up']), "KUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['K_down']), "KDown")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['C_up']), "CUp")
+        #saveSigShape(ofileSignal, ifile.Get(massPlotsSignal['C_down']), "CDown")
+#
+        #savePredShape(ofileSignal, mass_plot['obs_2017'], "data_obs_Ch2017")
+        #savePredShape(ofileSignal, mass_plot['obs_2018'], "data_obs_Ch2018")
+#
+        #savePredShape(ofileSignal, mass_plot['pred_2017_nominal'], "background_Ch2017")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_stat'], "background_Ch2017_statUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_stat'], "background_Ch2017_statDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_etaup'], "background_Ch2017_eta_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_etadown'], "background_Ch2017_eta_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_etadown'], "background_Ch2017_etaUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_etadown'], "background_Ch2017_etaDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_ihup'], "background_Ch2017_ih_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_ihdown'], "background_Ch2017_ih_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_ihdown'], "background_Ch2017_ihUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_ihdown'], "background_Ch2017_ihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_momup'], "background_Ch2017_mom_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_momdown'], "background_Ch2017_mom_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_momdown'], "background_Ch2017_momUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2017_momdown'], "background_Ch2017_momDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrih'], "background_Ch2017_corrihUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrih'], "background_Ch2017_corrihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrmom'], "background_Ch2017_corrmomUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrmom'], "background_Ch2017_corrmomDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_fitihup'], "background_Ch2017_fitihUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_fitihdown'], "background_Ch2017_fitihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_fitmomup'], "background_Ch2017_fitmomUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_fitmomdown'], "background_Ch2017_fitmomDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrbias'], "background_Ch2017_biascorrectionUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2017_corrbias'], "background_Ch2017_biascorrectionDown")
+        #
+        #savePredShape(ofileSignal, mass_plot['pred_2018_nominal'], "background_Ch2018")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_stat'], "background_Ch2018_statUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_stat'], "background_Ch2018_statDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_etaup'], "background_Ch2018_eta_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_etadown'], "background_Ch2018_eta_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_etadown'], "background_Ch2018_etaUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_etadown'], "background_Ch2018_etaDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_ihup'], "background_Ch2018_ih_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_ihdown'], "background_Ch2018_ih_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_ihdown'], "background_Ch2018_ihUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_ihdown'], "background_Ch2018_ihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_momup'], "background_Ch2018_mom_up")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_momdown'], "background_Ch2018_mom_down")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_momdown'], "background_Ch2018_momUp")
+        ##savePredShape(ofileSignal, mass_plot['pred_2018_momdown'], "background_Ch2018_momDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrih'], "background_Ch2018_corrihUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrih'], "background_Ch2018_corrihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrmom'], "background_Ch2018_corrmomUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrmom'], "background_Ch2018_corrmomDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_fitihup'], "background_Ch2018_fitihUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_fitihdown'], "background_Ch2018_fitihDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_fitmomup'], "background_Ch2018_fitmomUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_fitmomdown'], "background_Ch2018_fitmomDown")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrbias'], "background_Ch2018_biascorrectionUp")
+        #savePredShape(ofileSignal, mass_plot['pred_2018_corrbias'], "background_Ch2018_biascorrectionDown")
+        #os.system("mv {0} {1}/.".format(ofileSignal_name,outMassShape))
+
         yield_total=0
         yield_minus2sigma_minus1sigma=0
         yield_minus1sigma_mu=0
@@ -648,10 +930,12 @@ if __name__ == '__main__':
             yFpix.append(pushSyst(signal_Fpix_up,signal_Fpix_down))
             yGstrip.append(pushSyst(signal_Gstrip_up,signal_Gstrip_down))
             yPt.append(pushSyst(signal_Pt_up,signal_Pt_down))
+            print (signal_Trigger_up,signal_Trigger_down)
+            print pushSyst(signal_Trigger_up,signal_Trigger_down)
             yTrigger.append(pushSyst(signal_Trigger_up,signal_Trigger_down))
             yK.append(pushSyst(signal_K_up,signal_K_down))
             yC.append(pushSyst(signal_C_up,signal_C_down))
-
+            print np.sqrt(pow(pushSyst(signal_pu_up,signal_pu_down),2)+pow(pushSyst(signal_Fpix_up,signal_Fpix_down),2)+pow(pushSyst(signal_Gstrip_up,signal_Gstrip_down),2)+pow(pushSyst(signal_Pt_up,signal_Pt_down),2)+pow(pushSyst(signal_Trigger_up,signal_Trigger_down),2)+pow(pushSyst(signal_K_up,signal_K_down),2)+pow(pushSyst(signal_C_up,signal_C_down),2))
             yTotal.append(np.sqrt(pow(pushSyst(signal_pu_up,signal_pu_down),2)+pow(pushSyst(signal_Fpix_up,signal_Fpix_down),2)+pow(pushSyst(signal_Gstrip_up,signal_Gstrip_down),2)+pow(pushSyst(signal_Pt_up,signal_Pt_down),2)+pow(pushSyst(signal_Trigger_up,signal_Trigger_down),2)+pow(pushSyst(signal_K_up,signal_K_down),2)+pow(pushSyst(signal_C_up,signal_C_down),2)))
 
         if(bkg_2017_nominal!=0):
@@ -795,7 +1079,7 @@ if __name__ == '__main__':
         signal_down=totalUncertainy(tot_unc_sig_2017,0)
         signal_yield_norm=signal_yield*41.5/101.
         
-        makeYieldFile(text_file_tex_2017,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
+        makeYieldFile(text_file_tex_2017,name[signal],bkg,bckg_up,bckg_down,obs_2017,signal_yield_norm,signal_up,signal_down)
         
         bkg=bkg_2018_nominal
         bckg_up=totalUncertainy(tot_unc_bkg_2018,1)
@@ -804,7 +1088,7 @@ if __name__ == '__main__':
         signal_down=totalUncertainy(tot_unc_sig_2018,0)
         signal_yield_norm=signal_yield*59.7/101.
         
-        makeYieldFile(text_file_tex_2018,name[signal],bkg,bckg_up,bckg_down,signal_yield_norm,signal_up,signal_down)
+        makeYieldFile(text_file_tex_2018,name[signal],bkg,bckg_up,bckg_down,obs_2018,signal_yield_norm,signal_up,signal_down)
 
     grPU = create_TGraph(x, yPU, axis_title=['target mass [GeV]', 'Systematics uncertainties [%]'])
     grFpix = create_TGraph(x, yFpix, axis_title=['target mass [GeV]', 'Systematics uncertainties [%]'])

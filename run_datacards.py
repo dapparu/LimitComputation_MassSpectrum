@@ -20,11 +20,18 @@ if __name__ == '__main__':
 
     input_dir='datacards_SR3_test'
     tree_dir='limitTrees_SR3_test'
+
+    input_dir='mass_shape_analysis_dir'
+    tree_dir='mass_shape_analysis_dir_limits'
+
+    input_dir='datacards_SR3_test_UnB_v4_Raph_withGoodSignals'
+    tree_dir='limitTrees_SR3_test_UnB_v4_Raph_withGoodSignals'
 	
     os.system("mkdir -p {0}/".format(input_dir))
     os.system("mkdir -p {0}/".format(tree_dir))
 
     samples = [
+        'Gluino500_2018',
         'Gluino800_2018',
         'Gluino1000_2018',
         'Gluino1400_2018',
@@ -34,6 +41,8 @@ if __name__ == '__main__':
         'Gluino2200_2018',
         'Gluino2400_2018',
         'Gluino2600_2018',
+        'Stop400_2018',
+        'Stop500_2018',
         'Stop800_2018',
         'Stop1000_2018',
         'Stop1200_2018',
@@ -59,7 +68,7 @@ if __name__ == '__main__':
         'DYcharge1e_2200_2018',
         'DYcharge1e_2600_2018',
         'DYcharge2e_500_2018',
-        'DYcharge2e_800_2018',
+        #'DYcharge2e_800_2018',
         'DYcharge2e_1000_2018',
         'DYcharge2e_1400_2018',
         'DYcharge2e_1800_2018',
@@ -70,11 +79,13 @@ if __name__ == '__main__':
     #for sample in samples:
     def task(sample):
         name=sample
+        name2="datacard_"+sample
+        name2=sample
         print name
-        run_combine = "combine -M AsymptoticLimits -n .{} -d {}/{}.txt --rRelAcc 0.000005 --rAbsAcc 0.000005 --rMin -1000.0 --rMax 1000.0".format(name, input_dir, name)
+        run_combine = "combine -M AsymptoticLimits -n .{} -d {}/{}.txt --rRelAcc 0.000005 --rAbsAcc 0.000005 --rMin -1000.0 --rMax 1000.0".format(name, input_dir, name2)
         print run_combine
-        os.system(run_combine)
-        run_combine = "combine -M Significance -n.{} {}/{}.txt".format(name, input_dir, name)
+        #os.system(run_combine)
+        run_combine = "combine -M Significance -n.{} {}/{}.txt".format(name, input_dir, name2)
         print run_combine
         os.system(run_combine)
         os.system("mv higgsCombine.{0}.AsymptoticLimits.mH120.root {1}/".format(name, tree_dir))
@@ -83,7 +94,7 @@ if __name__ == '__main__':
     for sample in samples:
         ### use these two lines to run on parallel
         t = Thread(target=task, args=(sample,))
-        t.start()
+        #t.start()
         
         ### use this line to run one signal at once
-        #task(sample)
+        task(sample)

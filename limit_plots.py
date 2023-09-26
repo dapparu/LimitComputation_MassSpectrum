@@ -21,10 +21,10 @@ CMS_lumi.writeExtraText = 0
 print(sys.version)
 
 searchRegion='SR3'
-labelSR=searchRegion+'_test'
+labelSR=searchRegion+'_test_SR3_UnB_V4_withGoodSignals_largeWindows'
 
 labelSignal="ppStau"
-#labelSignal="gluino"
+labelSignal="gluino"
 #labelSignal="stop"
 #labelSignal="DYQ1"
 #labelSignal="DYQ2"
@@ -86,6 +86,12 @@ limits = OrderedDict()
 dataCardDir = 'datacards_'+searchRegion+'_test/'
 limitDir = 'limitTrees_'+searchRegion+'_test/'
 
+dataCardDir = 'mass_shape_analysis_dir/'
+limitDir = 'mass_shape_analysis_dir_limits/'
+
+dataCardDir = 'datacards_SR3_test_UnB_v4_Raph_withGoodSignals_largeWindows/'
+limitDir = 'limitTrees_SR3_test_UnB_v4_Raph_withGoodSignals_largeWindows/'
+
 for s in signal:
     print 'signal:', s
     limitTrees[s] = {}
@@ -103,6 +109,7 @@ for s in signal:
     name = name.replace('_M-', '')
     print 'name:', name
     dataCards[s] = dataCardDir + '{}_2018.txt'.format(name)
+    #dataCards[s] = dataCardDir + 'datacard_{}_2018.txt'.format(name)
     print 'datacard:', dataCards[s]
     limitTrees[s] = limitDir + 'higgsCombine.{}'.format(name) + '_2018.AsymptoticLimits.mH120.root'
     print (limitDir + 'higgsCombine.{}'.format(name) + '_2018.AsymptoticLimits.mH120.root')
@@ -326,7 +333,7 @@ c.SetTickx(1)
 c.Draw()
 
 os.system('mkdir -p limit_plots_dir')
-ofile_name="limit_plots_dir/limit_"+labelSignal+"_"+labelSR
+ofile_name="limit_plots_dir/limit_UnB_v4_Raph_"+labelSignal+"_"+labelSR
 
 c.SaveAs(ofile_name+".root")
 c.SaveAs(ofile_name+".pdf")
